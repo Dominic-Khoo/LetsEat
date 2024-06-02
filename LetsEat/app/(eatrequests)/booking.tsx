@@ -61,6 +61,7 @@ const BookingScreen = () => {
 
     return (
         <View style={styles.container}>
+            <Text style={styles.header}>Who to Book?</Text>
             <TextInput
                 style={styles.searchInput}
                 placeholder="Search friends..."
@@ -85,6 +86,9 @@ const BookingScreen = () => {
                     </TouchableOpacity>
                 </View>
             )}
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.back()}>
+                <Text style={styles.actionButtonText}>Back</Text>
+            </TouchableOpacity>
             <Modal animationType="slide" transparent={true} visible={requestSentModalVisible}>
                 <TouchableWithoutFeedback onPress={() => setRequestSentModalVisible(false)}>
                     <View style={styles.modalContainer}>
@@ -102,6 +106,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         margin: 10,
+    },
+    header: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        textAlign: 'center',
     },
     searchInput: {
         borderWidth: 1,

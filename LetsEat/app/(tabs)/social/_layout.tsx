@@ -6,9 +6,10 @@ const SocialLayout = () => {
   return (
     <Stack>
       <Stack.Screen
-        name="social"
+        name="index"
         options={{
           headerShown: false,
+          
         }}
       />
     </Stack>

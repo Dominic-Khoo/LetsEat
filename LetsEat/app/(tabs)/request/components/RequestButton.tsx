@@ -57,10 +57,10 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         paddingVertical: 20,
         paddingHorizontal: 40,
-        backgroundColor: '#ff7e00'
+        backgroundColor: '#F87171'
     },
     buttonText: {
-        color: '#ffffff',
+        color: '#000000',
         fontSize: 20,
         fontWeight: 'bold',
         fontFamily: 'Lato',

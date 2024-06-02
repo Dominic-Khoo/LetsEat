@@ -7,8 +7,8 @@ import Incoming from "./components/IncomingRequests";
 const Request = () => {
   return (
     <View className="flex-1">
-      <View className ="bg-red-200 pt-10">
-        <Text className ="text-2xl text-center">Request</Text>
+      <View className ="bg-red-200 pt-5">
+        <Text className ="text-2xl text-center h-12">Request</Text>
       </View> 
       <Schedule></Schedule>
       <Incoming></Incoming>

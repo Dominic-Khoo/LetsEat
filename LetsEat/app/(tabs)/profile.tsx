@@ -6,8 +6,8 @@ import { FIREBASE_AUTH } from "@/firebaseConfig";
 
 const Profile = () => {
   return (
-    <View className="bg-red-200 pt-20">
-      <Text className="text-2xl text-center">Profile</Text>
+    <View className="bg-red-200 pt-5">
+      <Text className="text-2xl text-center h-12">Profile</Text>
       <Button onPress={() => FIREBASE_AUTH.signOut()}>
         <Text>Logout</Text>
       </Button>

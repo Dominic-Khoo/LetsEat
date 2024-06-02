@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, Text } from 'react-native';
+import { View, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, Text, Modal } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { ref, onValue, push, set, get, child } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
+import { BlurView } from 'expo-blur';
 
 type User = {
     uid: string;
@@ -16,6 +17,8 @@ const UserList = () => {
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [tabVisible, setTabVisible] = useState<boolean>(false);
     const [sendingRequest, setSendingRequest] = useState<boolean>(false);
+    const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const [friends, setFriends] = useState<User[]>([]);
 
     useEffect(() => {
         const auth = getAuth();
@@ -36,6 +39,22 @@ const UserList = () => {
                 setUsers([]);
             }
         });
+
+        // Fetch friends list
+        const friendsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/friendsList`);
+        onValue(friendsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const friendsList = Object.keys(data).map(key => ({
+                    uid: key,
+                    email: data[key].email,
+                    username: data[key].username,
+                }));
+                setFriends(friendsList);
+            } else {
+                setFriends([]);
+            }
+        });
     }, []);
 
     const searchUsers = async (query: string) => {
@@ -52,10 +71,12 @@ const UserList = () => {
                 const users = snapshot.val();
                 const results = Object.keys(users)
                     .filter(key => key !== currentUser.uid && users[key].email.toLowerCase().includes(query.toLowerCase()))
-                    .map(key => ({ uid: key, email: users[key].email }));
+                    .map(key => ({ uid: key, email: users[key].email}));
 
+                // Filter out users who are already friends or in the users list
                 const filteredResults = results.filter(user => 
-                    !Users.some(User => User.uid === user.uid)
+                    !Users.some(User => User.uid === user.uid) &&
+                    !friends.some(friend => friend.uid === user.uid)
                 );
 
                 setSearchResults(filteredResults);
@@ -84,7 +105,7 @@ const UserList = () => {
                 const auth = getAuth();
                 const currentUser = auth.currentUser;
                 if (!currentUser) return;
-
+                    
                 const requestRef = ref(FIREBASE_DB, `users/${selectedUser.uid}/incomingRequests`);
                 const newRequestRef = push(requestRef);
                 await set(newRequestRef, {
@@ -93,6 +114,7 @@ const UserList = () => {
                 });
 
                 console.log('Friend request sent successfully to:', selectedUser.email);
+                setModalVisible(true);
             } catch (error) {
                 console.error('Error sending Friend request:', (error as Error).message);
             } finally {
@@ -130,6 +152,20 @@ const UserList = () => {
                     </View>
                 ))}
             </ScrollView>
+
+            <Modal
+                transparent={true}
+                visible={modalVisible}
+                animationType="slide"
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <BlurView intensity={50} style={styles.blurContainer}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.modalText}>Request sent successfully</Text>
+                        <Button title="Close" onPress={() => setModalVisible(false)} />
+                    </View>
+                </BlurView>
+            </Modal>
         </View>
     );
 };
@@ -184,6 +220,30 @@ const styles = StyleSheet.create({
     },
     tabButtonText: {
         color: '#fff',
+    },
+    blurContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalView: {
+        width: 250,
+        padding: 20,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    modalText: {
+        marginBottom: 15,
+        textAlign: 'center',
     },
 });
 

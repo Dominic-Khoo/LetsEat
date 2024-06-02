@@ -1,14 +1,34 @@
 import { Image, View, Text, Button } from "react-native";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { icons } from "@/constants";
 import { router } from "expo-router";
+import { getAuth } from "firebase/auth";
+import { ref, onValue } from "firebase/database";
+import { FIREBASE_DB } from "../../firebaseConfig";
 
 const Home = () => {
+  const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (currentUser) {
+      const userRef = ref(FIREBASE_DB, `users/${currentUser.uid}`);
+      onValue(userRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.username) {
+          setUsername(data.username);
+        }
+      });
+    }
+  }, []);
+
   return (
     <View>
       <View className="bg-red-400 rounded-1xl pt-5 pl-2 pr-2 pb-2">
-        <Text className="text-2xl text-left pl-3 font-pblack">hi, (user)!</Text>
+        <Text className="text-2xl text-left pl-3 font-pblack">hi, {username}!</Text>
       </View>
 
       <View className="pt-5 pl-2 pr-2 pb-12">

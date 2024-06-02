@@ -1,6 +1,5 @@
 import {
   View,
-  Button,
   TextInput,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -16,6 +15,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
+import { ref, set } from "firebase/database";
 import { Link, router } from "expo-router";
 import FormField from "../../components/FormField";
 import CustomButton from "@/components/CustomButton";
@@ -36,7 +36,18 @@ const Signup = () => {
         email,
         password
       );
-      console.log(response);
+      const user = response.user;
+
+      // Store user data in Firebase Realtime Database
+      await set(ref(FIREBASE_DB, `users/${user.uid}`), {
+        uid: user.uid,
+        email: user.email,
+        username: username,
+      });
+
+      console.log('User created and data stored:', response);
+      // Navigate to another screen after successful signup
+      router.push("/home");
     } catch (error: any) {
       console.log(error);
       alert("Sign up failed: " + error.message);

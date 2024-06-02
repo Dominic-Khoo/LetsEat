@@ -91,6 +91,9 @@ const BookingDetails = () => {
             <TouchableOpacity onPress={sendBookingRequest} style={styles.button}>
                 <Text style={styles.buttonText}>Send Booking Request</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -129,6 +132,17 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: '#fff',
+        fontSize: 16,
+    },
+    backButton: {
+        padding: 10,
+        backgroundColor: '#007bff',
+        borderRadius: 10,
+        marginVertical: 5,
+    },
+    backButtonText: {
+        color: '#fff',
+        textAlign: 'center',
         fontSize: 16,
     },
 });

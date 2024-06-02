@@ -7,8 +7,8 @@ import { router } from 'expo-router';
 const Social = () => {
   return (
     <View className ="flex-1">
-        <View className ="bg-red-200 pt-20">
-            <Text className ="text-2xl text-center">Social</Text> 
+        <View className ="bg-red-200 pt-5">
+            <Text className ="text-2xl text-center h-12">Social</Text> 
         </View>
       <FriendsList></FriendsList>
       <IncomingFriendReq></IncomingFriendReq>
@@ -21,15 +21,19 @@ const Social = () => {
 
 const styles = StyleSheet.create({
     addButton: {
-        backgroundColor: '#007bff',
-        padding: 15,
-        borderRadius: 5,
-        alignItems: 'center',
-        marginBottom: 50,
+        borderRadius: 8,
+        paddingVertical: 20,
+        paddingHorizontal: 40,
+        backgroundColor: '#F87171',
+        marginHorizontal: 10,
+        marginBottom: 10,
     },
     addButtonText: {
-        color: '#fff',
-        fontSize: 16,
+        color: '#000000',
+        fontSize: 20,
+        fontWeight: 'bold',
+        fontFamily: 'Lato',
+        textAlign: 'center'
     },
 });
 
