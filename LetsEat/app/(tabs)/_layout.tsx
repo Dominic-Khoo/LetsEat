@@ -1,11 +1,7 @@
-import { Redirect, Tabs } from "expo-router";
-import { router } from "expo-router";
-import { FIREBASE_AUTH } from "../../firebaseConfig";
+import { Tabs } from "expo-router";
 import { Image, Text, View } from "react-native";
 import React from "react";
 import { icons } from "../../constants";
-import { StatusBar } from "expo-status-bar";
-import Request from "./request/request";
 
 const TabIcon = ({
   icon,

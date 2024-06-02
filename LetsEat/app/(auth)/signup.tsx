@@ -1,18 +1,13 @@
 import {
   View,
-  TextInput,
-  ActivityIndicator,
-  KeyboardAvoidingView,
   SafeAreaView,
   ScrollView,
-  Image,
   Text,
   Dimensions,
 } from "react-native";
 import React, { useState } from "react";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../firebaseConfig";
 import {
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { ref, set } from "firebase/database";

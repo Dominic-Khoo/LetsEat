@@ -1,6 +1,5 @@
 import { Image, View, Text, Button } from "react-native";
 import React, { useState, useEffect } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { icons } from "@/constants";
 import { router } from "expo-router";
 import { getAuth } from "firebase/auth";

@@ -1,9 +1,5 @@
 import {
   View,
-  Button,
-  TextInput,
-  ActivityIndicator,
-  KeyboardAvoidingView,
   SafeAreaView,
   ScrollView,
   Image,
@@ -14,9 +10,8 @@ import React, { useState } from "react";
 import { FIREBASE_AUTH } from "../../firebaseConfig";
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { Link, router } from "expo-router";
+import { Link } from "expo-router";
 import { images } from "../../constants";
 import FormField from "../../components/FormField";
 import CustomButton from "@/components/CustomButton";
