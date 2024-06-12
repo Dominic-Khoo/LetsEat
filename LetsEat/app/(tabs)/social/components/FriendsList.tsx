@@ -7,11 +7,13 @@ import { FIREBASE_DB } from '../../../../firebaseConfig';
 type Friend = {
     uid: string;
     email: string;
+    username: string;
 };
 
 const FriendsList = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [friends, setFriends] = useState<Friend[]>([]);
+    const [filteredFriends, setFilteredFriends] = useState<Friend[]>([]);
     const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
     const [tabVisible, setTabVisible] = useState<boolean>(false);
 
@@ -28,18 +30,24 @@ const FriendsList = () => {
                 const friendsList = Object.keys(data).map(key => ({
                     uid: key,
                     email: data[key].email,
+                    username: data[key].username,
                 }));
                 setFriends(friendsList);
+                setFilteredFriends(friendsList); // Initialize filtered friends
             } else {
                 setFriends([]);
+                setFilteredFriends([]);
             }
         });
     }, []);
 
     const searchFriends = (query: string) => {
-        if (!query) return;
-        const filteredFriends = friends.filter(friend => friend.email.toLowerCase().includes(query.toLowerCase()));
-        setFriends(filteredFriends);
+        if (!query) {
+            setFilteredFriends(friends); // Reset to all friends if search query is empty
+            return;
+        }
+        const filtered = friends.filter(friend => friend.username.toLowerCase().includes(query.toLowerCase()));
+        setFilteredFriends(filtered);
     };
 
     const handleFriendClick = (friend: Friend) => {
@@ -85,7 +93,6 @@ const FriendsList = () => {
         setSelectedFriend(null);
         setTabVisible(false);
     };
-    
 
     return (
         <View style={styles.container}>
@@ -101,10 +108,10 @@ const FriendsList = () => {
                 <Button title="Search" onPress={() => searchFriends(searchQuery)} />
             </View>
             <ScrollView style={styles.listContainer}>
-                {friends.map((friend, index) => (
+                {filteredFriends.map((friend, index) => (
                     <View key={index}>
                         <TouchableOpacity style={styles.listItem} onPress={() => handleFriendClick(friend)}>
-                            <Text style={styles.listText}>{friend.email}</Text>
+                            <Text style={styles.listText}>{friend.username}</Text>
                         </TouchableOpacity>
                         {selectedFriend && selectedFriend.uid === friend.uid && tabVisible && (
                             <View style={styles.tabContainer}>

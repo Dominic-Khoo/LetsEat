@@ -37,8 +37,8 @@ const RequestButton = () => {
                             <TouchableOpacity style={[styles.popupButton, styles.takeawayButton]} onPress={() => {}}>
                                 <Text style={styles.popupText}>Takeaway</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <Text style={styles.closeButton}>Close</Text>
+                            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButtonContainer}>
+                                <Text style={styles.closeButtonText}>Close</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
         color: '#000000',
         fontSize: 20,
         fontWeight: 'bold',
-        fontFamily: 'Lato',
+        fontFamily: 'Poppins-SemiBold',
         textAlign: 'center'
     },
     modalContainer: {
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     },
     openJioButton: {
         backgroundColor: '#C04000',
-        borderColor: '##C04000',
+        borderColor: '#C04000',
     },
     bookingButton: {
         backgroundColor: '#C04000',
@@ -106,9 +106,15 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#ffffff',
         textAlign: 'center',
+        fontFamily: 'Poppins-SemiBold',
     },
-    closeButton: {
-        color: '#3182CE',
+    closeButtonContainer: {
+        backgroundColor: 'red',
+        borderRadius: 8,
+        padding: 10,
+    },
+    closeButtonText: {
+        color: '#fff',
         fontSize: 16,
         textAlign: 'center',
     },

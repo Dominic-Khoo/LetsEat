@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../firebaseConfig";
 import {
   createUserWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
 import { ref, set } from "firebase/database";
 import { Link, router } from "expo-router";
@@ -32,6 +33,9 @@ const Signup = () => {
         password
       );
       const user = response.user;
+
+      // Set the displayName
+      await updateProfile(user, { displayName: username });
 
       // Store user data in Firebase Realtime Database
       await set(ref(FIREBASE_DB, `users/${user.uid}`), {

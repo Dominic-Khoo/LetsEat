@@ -12,6 +12,7 @@ interface Request {
     message: string;
     requesterEmail: string;
     requesterUid: string;
+    requesterUsername: string;
     date?: string;
     time?: string;
 }
@@ -47,9 +48,10 @@ const Incoming = () => {
                 const openJioRequests = Object.keys(data).map(key => ({
                     id: key,
                     type: 'Open Jio' as TabType,
-                    message: data[key].requesterEmail, // Use email as the message
+                    message: data[key].requesterUsername, // Use email as the message
                     requesterEmail: data[key].requesterEmail,
                     requesterUid: data[key].requesterUid,
+                    requesterUsername: data[key].requesterUsername,
                 }));
 
                 const uniqueRequesters = new Set(openJioRequests.map(request => request.requesterUid));
@@ -72,9 +74,10 @@ const Incoming = () => {
                 const bookingRequests = Object.keys(data).map(key => ({
                     id: key,
                     type: 'Bookings' as TabType,
-                    message: `${data[key].requesterEmail} for ${new Date(data[key].date).toLocaleDateString()} at ${new Date(data[key].time).toLocaleTimeString()}`,
+                    message: `${data[key].requesterUsername} for ${new Date(data[key].date).toLocaleDateString()} at ${new Date(data[key].time).toLocaleTimeString()}`,
                     requesterEmail: data[key].requesterEmail,
                     requesterUid: data[key].requesterUid,
+                    requesterUsername: data[key].requesterUsername,
                     date: data[key].date,
                     time: data[key].time,
                 }));
@@ -100,23 +103,25 @@ const Incoming = () => {
 
         const currentUserUid = currentUser.uid;
         const currentUserEmail = currentUser.email;
+        const currentUsername = currentUser.displayName;
 
         const acceptedRequest = requests[type].find(request => request.id === id);
         if (!acceptedRequest) return;
 
         const requesterUid = acceptedRequest.requesterUid;
         const requesterEmail = acceptedRequest.requesterEmail;
+        const requesterUsername = acceptedRequest.requesterUsername;
 
         const currentDate = new Date().toISOString().split('T')[0];
 
         const newEvent: Event = {
             day: currentDate,
-            name: `Open Jio with ${requesterEmail}`,
+            name: `Open Jio with ${requesterUsername}`,
             height: 50,
         };
         const newSenderEvent: Event = {
             day: currentDate,
-            name: `Open Jio with ${currentUserEmail}`,
+            name: `Open Jio with ${currentUsername}`,
             height: 50,
         };
 
@@ -170,6 +175,7 @@ const Incoming = () => {
     
         const currentUserUid = currentUser.uid;
         const currentUserEmail = currentUser.email;
+        const currentUsername = currentUser.displayName;
         const currentDate = new Date().toISOString().split('T')[0];
     
         const acceptedRequest = requests[type].find(request => request.id === id);
@@ -177,6 +183,7 @@ const Incoming = () => {
     
         const requesterUid = acceptedRequest.requesterUid;
         const requesterEmail = acceptedRequest.requesterEmail;
+        const requesterUsername = acceptedRequest.requesterUsername;
     
         // Extract date and time from the accepted booking request
         const bookingDateTemp = acceptedRequest.date || '';
@@ -194,12 +201,12 @@ const Incoming = () => {
         // Create event names with both date, time, and user details
         const newEvent: Event = {
             day: bookingDate, // Use booking date instead of current date
-            name: `Booking with ${requesterEmail} at ${formattedTime}`, // Include time and requester's email
+            name: `Booking with ${requesterUsername} at ${formattedTime}`, // Include time and requester's email
             height: 50,
         };
         const newSenderEvent: Event = {
             day: bookingDate, // Use booking date instead of current date
-            name: `Booking with ${currentUserEmail} at ${formattedTime}`, // Include time and current user's email
+            name: `Booking with ${currentUsername} at ${formattedTime}`, // Include time and current user's email
             height: 50,
         };
     
@@ -306,6 +313,7 @@ const Incoming = () => {
             </View>
         ));
     };
+    
     
     const handleAcceptButton = (tab: TabType, id: string) => {
         if (tab === 'Open Jio') {

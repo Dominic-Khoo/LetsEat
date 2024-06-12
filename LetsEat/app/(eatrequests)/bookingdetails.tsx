@@ -1,4 +1,3 @@
-// screens/bookingdetails/index.tsx
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -42,12 +41,13 @@ const BookingDetails = () => {
                 time: time.toISOString(),
                 requesterEmail: currentUser.email,
                 requesterUid: currentUser.uid,
+                requesterUsername: currentUser.displayName, // Ensure the username is available here
             };
 
             const bookingRef = ref(database, `users/${friendData.uid}/bookingRequests`);
             push(bookingRef, bookingDetails)
                 .then(() => {
-                    alert(`Booking request sent to ${friendData.email} for ${date.toLocaleDateString()} at ${time.toLocaleTimeString()}`);
+                    alert(`Booking request sent to ${friendData.username} for ${date.toLocaleDateString()} at ${time.toLocaleTimeString()}`);
                     router.back(); // Navigate back to the previous screen
                 })
                 .catch((error) => {
@@ -61,7 +61,7 @@ const BookingDetails = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.header}>Booking Request to {friendData.email}</Text>
+            <Text style={styles.header}>Booking Request to {friendData.username}</Text>
             <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.picker}>
                 <Text style={styles.pickerText}>
                     {date ? date.toLocaleDateString() : 'Select Date'}
@@ -139,6 +139,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#007bff',
         borderRadius: 10,
         marginVertical: 5,
+        width: '80%'
     },
     backButtonText: {
         color: '#fff',

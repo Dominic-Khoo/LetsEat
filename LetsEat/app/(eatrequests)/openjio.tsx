@@ -8,6 +8,7 @@ import { router } from 'expo-router';
 type Friend = {
     uid: string;
     email: string;
+    username: string;
 };
 
 const OpenJioScreen = () => {
@@ -29,6 +30,7 @@ const OpenJioScreen = () => {
                 const friendsList = Object.keys(data).map(key => ({
                     uid: key,
                     email: data[key].email,
+                    username: data[key].username,
                 }));
                 setFriends(friendsList);
                 setFilteredFriends(friendsList); // Initialize filtered friends list
@@ -42,8 +44,12 @@ const OpenJioScreen = () => {
     // Update filtered friends based on search query
     const handleSearch = (query: string) => {
         setSearchQuery(query);
+        if (!query) {
+            setFilteredFriends(friends); // Reset to all friends if search query is empty
+            return;
+        }
         const filtered = friends.filter((friend: Friend) =>
-            friend.email.toLowerCase().includes(query.toLowerCase())
+            friend.username.toLowerCase().includes(query.toLowerCase())
         );
         setFilteredFriends(filtered);
     };
@@ -65,6 +71,7 @@ const OpenJioScreen = () => {
             await set(newRequestRef, {
                 requesterUid: currentUser.uid,
                 requesterEmail: currentUser.email,
+                requesterUsername: currentUser.displayName,
                 timestamp: Date.now(),
             });
             console.log('Open Jio Request sent successfully to:', friend.email);
@@ -86,13 +93,13 @@ const OpenJioScreen = () => {
             <ScrollView style={styles.friendsContainer}>
                 {filteredFriends.map((friend: Friend) => (
                     <TouchableOpacity key={friend.uid} style={styles.item} onPress={() => handleFriendClick(friend)}>
-                        <Text style={styles.name}>{friend.email}</Text>
+                        <Text style={styles.name}>{friend.username}</Text>
                     </TouchableOpacity>
                 ))}
             </ScrollView>
             {selectedFriend && (
                 <View style={styles.actionsContainer}>
-                    <Text style={styles.selectedFriendText}>Actions for {selectedFriend.email}:</Text>
+                    <Text style={styles.selectedFriendText}>Actions for {selectedFriend.username}:</Text>
                     <TouchableOpacity
                         style={styles.actionButton}
                         onPress={() => sendOpenJioRequest(selectedFriend)}

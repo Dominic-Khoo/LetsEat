@@ -8,7 +8,7 @@ const Social = () => {
   return (
     <View className ="flex-1">
         <View className ="bg-red-200 pt-5">
-            <Text className ="text-2xl text-center h-12">Social</Text> 
+            <Text className ="text-2xl text-center h-12 font-pblack">Social</Text> 
         </View>
       <FriendsList></FriendsList>
       <IncomingFriendReq></IncomingFriendReq>

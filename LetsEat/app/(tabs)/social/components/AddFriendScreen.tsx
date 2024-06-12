@@ -8,6 +8,7 @@ import { BlurView } from 'expo-blur';
 type User = {
     uid: string;
     email: string;
+    username: string;
 };
 
 const UserList = () => {
@@ -33,6 +34,7 @@ const UserList = () => {
                 const UsersList = Object.keys(data).map(key => ({
                     uid: key,
                     email: data[key].email,
+                    username: data[key].username,
                 }));
                 setUsers(UsersList);
             } else {
@@ -70,8 +72,15 @@ const UserList = () => {
             if (snapshot.exists()) {
                 const users = snapshot.val();
                 const results = Object.keys(users)
-                    .filter(key => key !== currentUser.uid && users[key].email.toLowerCase().includes(query.toLowerCase()))
-                    .map(key => ({ uid: key, email: users[key].email}));
+                    .filter(key => key !== currentUser.uid && (
+                        users[key].username.toLowerCase().includes(query.toLowerCase()) ||
+                        users[key].email.toLowerCase() === query.toLowerCase()
+                    ))
+                    .map(key => ({
+                        uid: key,
+                        email: users[key].email,
+                        username: users[key].username,
+                    }));
 
                 // Filter out users who are already friends or in the users list
                 const filteredResults = results.filter(user => 
@@ -105,23 +114,34 @@ const UserList = () => {
                 const auth = getAuth();
                 const currentUser = auth.currentUser;
                 if (!currentUser) return;
-                    
-                const requestRef = ref(FIREBASE_DB, `users/${selectedUser.uid}/incomingRequests`);
-                const newRequestRef = push(requestRef);
-                await set(newRequestRef, {
-                    requesterUid: currentUser.uid,
-                    requesterEmail: currentUser.email,
-                });
-
-                console.log('Friend request sent successfully to:', selectedUser.email);
-                setModalVisible(true);
+    
+                const dbRef = ref(FIREBASE_DB, `users/${currentUser.uid}`);
+                const snapshot = await get(dbRef);
+                if (snapshot.exists()) {
+                    const currentUserData = snapshot.val();
+                    const currentUsername = currentUserData.username;
+    
+                    const requestRef = ref(FIREBASE_DB, `users/${selectedUser.uid}/incomingRequests`);
+                    const newRequestRef = push(requestRef);
+                    await set(newRequestRef, {
+                        requesterUid: currentUser.uid,
+                        requesterEmail: currentUser.email,
+                        requesterUsername: currentUsername,
+                    });
+    
+                    console.log('Friend request sent successfully to:', selectedUser.email);
+                    setModalVisible(true);
+                } else {
+                    console.error('Error: current user data not found');
+                }
             } catch (error) {
-                console.error('Error sending Friend request:', (error as Error).message);
+                console.error('Error sending friend request:', (error as Error).message);
             } finally {
                 setSendingRequest(false);
             }
         }
     };
+    
 
     return (
         <View style={styles.container}>
@@ -140,7 +160,7 @@ const UserList = () => {
                 {searchResults.map((User, index) => (
                     <View key={index}>
                         <TouchableOpacity style={styles.listItem} onPress={() => handleUserClick(User)}>
-                            <Text style={styles.listText}>{User.email}</Text>
+                            <Text style={styles.listText}>{User.username}</Text>
                         </TouchableOpacity>
                         {selectedUser && selectedUser.uid === User.uid && tabVisible && (
                             <View style={styles.tabContainer}>

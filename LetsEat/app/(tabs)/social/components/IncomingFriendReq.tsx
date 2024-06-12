@@ -7,6 +7,7 @@ import { FIREBASE_DB } from '../../../../firebaseConfig';
 type FriendRequest = {
     requesterUid: string;
     requesterEmail: string;
+    requesterUsername: string;
 };
 
 const IncomingFriendReq = () => {
@@ -25,6 +26,7 @@ const IncomingFriendReq = () => {
                 const formattedRequests = Object.keys(data).map(key => ({
                     requesterUid: data[key].requesterUid,
                     requesterEmail: data[key].requesterEmail,
+                    requesterUsername: data[key].requesterUsername,
                 }));
                 setRequests(formattedRequests);
             } else {
@@ -37,21 +39,32 @@ const IncomingFriendReq = () => {
         const auth = getAuth();
         const currentUser = auth.currentUser;
         if (!currentUser) return;
-
+    
         try {
+            // Fetch current user's username
+            const currentUserRef = ref(FIREBASE_DB, `users/${currentUser.uid}`);
+            const snapshot = await get(currentUserRef);
+            if (!snapshot.exists()) {
+                console.error('Current user data not found');
+                return;
+            }
+    
+            const currentUserData = snapshot.val();
+            const currentUsername = currentUserData.username;
+    
             // Add requester to current user's friends list
             const currentUserFriendsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/friendsList/${request.requesterUid}`);
-            await update(currentUserFriendsRef, { email: request.requesterEmail });
-
+            await update(currentUserFriendsRef, { email: request.requesterEmail, username: request.requesterUsername });
+    
             // Add current user to requester's friends list
             const requesterFriendsRef = ref(FIREBASE_DB, `users/${request.requesterUid}/friendsList/${currentUser.uid}`);
-            await update(requesterFriendsRef, { email: currentUser.email });
-
+            await update(requesterFriendsRef, { email: currentUser.email, username: currentUsername });
+    
             // Remove all requests from the requester
             const requestsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/incomingRequests`);
-            const snapshot = await get(requestsRef);
-            if (snapshot.exists()) {
-                snapshot.forEach((childSnapshot) => {
+            const requestSnapshot = await get(requestsRef);
+            if (requestSnapshot.exists()) {
+                requestSnapshot.forEach((childSnapshot) => {
                     const requestId = childSnapshot.key;
                     const requestData = childSnapshot.val();
                     if (requestData.requesterUid === request.requesterUid) {
@@ -60,15 +73,16 @@ const IncomingFriendReq = () => {
                     }
                 });
             }
-
+    
             // Update the state to remove the accepted requests
             setRequests(prevRequests => prevRequests.filter(req => req.requesterUid !== request.requesterUid));
-
+    
             console.log('Friend request accepted:', request.requesterEmail);
         } catch (error) {
             console.error('Error accepting friend request:', (error as Error).message);
         }
     };
+    
 
     const declineFriendRequest = async (request: FriendRequest) => {
         const auth = getAuth();
@@ -105,7 +119,7 @@ const IncomingFriendReq = () => {
                 <Text style={styles.sectionTitle}>Incoming Requests</Text>
                 {requests.slice(0, 1).map((request, index) => (
                     <View key={index} style={styles.listItem}>
-                        <Text style={styles.listText}>{request.requesterEmail}</Text>
+                        <Text style={styles.listText}>{request.requesterUsername}</Text>
                         <View style={styles.buttonContainer}>
                             <TouchableOpacity style={styles.acceptButton} onPress={() => acceptFriendRequest(request)}>
                                 <Text style={styles.buttonText}>Accept</Text>
