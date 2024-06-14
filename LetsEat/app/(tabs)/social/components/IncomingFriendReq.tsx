@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Button, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { ref, onValue, update, remove, get } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
@@ -23,11 +23,20 @@ const IncomingFriendReq = () => {
         onValue(requestsRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                const formattedRequests = Object.keys(data).map(key => ({
-                    requesterUid: data[key].requesterUid,
-                    requesterEmail: data[key].requesterEmail,
-                    requesterUsername: data[key].requesterUsername,
-                }));
+                const uniqueRequests = new Set();
+                const formattedRequests = Object.keys(data).map(key => {
+                    const request = data[key];
+                    if (!uniqueRequests.has(request.requesterUid)) {
+                        uniqueRequests.add(request.requesterUid);
+                        return {
+                            requesterUid: request.requesterUid,
+                            requesterEmail: request.requesterEmail,
+                            requesterUsername: request.requesterUsername,
+                        };
+                    }
+                    return null;
+                }).filter(request => request !== null) as FriendRequest[];
+
                 setRequests(formattedRequests);
             } else {
                 setRequests([]);
@@ -39,7 +48,7 @@ const IncomingFriendReq = () => {
         const auth = getAuth();
         const currentUser = auth.currentUser;
         if (!currentUser) return;
-    
+
         try {
             // Fetch current user's username
             const currentUserRef = ref(FIREBASE_DB, `users/${currentUser.uid}`);
@@ -48,18 +57,18 @@ const IncomingFriendReq = () => {
                 console.error('Current user data not found');
                 return;
             }
-    
+
             const currentUserData = snapshot.val();
             const currentUsername = currentUserData.username;
-    
+
             // Add requester to current user's friends list
             const currentUserFriendsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/friendsList/${request.requesterUid}`);
             await update(currentUserFriendsRef, { email: request.requesterEmail, username: request.requesterUsername });
-    
+
             // Add current user to requester's friends list
             const requesterFriendsRef = ref(FIREBASE_DB, `users/${request.requesterUid}/friendsList/${currentUser.uid}`);
             await update(requesterFriendsRef, { email: currentUser.email, username: currentUsername });
-    
+
             // Remove all requests from the requester
             const requestsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/incomingRequests`);
             const requestSnapshot = await get(requestsRef);
@@ -73,16 +82,15 @@ const IncomingFriendReq = () => {
                     }
                 });
             }
-    
+
             // Update the state to remove the accepted requests
             setRequests(prevRequests => prevRequests.filter(req => req.requesterUid !== request.requesterUid));
-    
+
             console.log('Friend request accepted:', request.requesterEmail);
         } catch (error) {
             console.error('Error accepting friend request:', (error as Error).message);
         }
     };
-    
 
     const declineFriendRequest = async (request: FriendRequest) => {
         const auth = getAuth();
@@ -115,22 +123,28 @@ const IncomingFriendReq = () => {
 
     return (
         <View style={styles.container}>
-            <ScrollView style={styles.listContainer}>
-                <Text style={styles.sectionTitle}>Incoming Requests</Text>
-                {requests.slice(0, 1).map((request, index) => (
-                    <View key={index} style={styles.listItem}>
-                        <Text style={styles.listText}>{request.requesterUsername}</Text>
-                        <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={styles.acceptButton} onPress={() => acceptFriendRequest(request)}>
-                                <Text style={styles.buttonText}>Accept</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.declineButton} onPress={() => declineFriendRequest(request)}>
-                                <Text style={styles.buttonText}>Decline</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                ))}
-            </ScrollView>
+            <Text style={styles.sectionTitle}>Incoming Requests</Text>
+            <View style={styles.requestsContainer}>
+                {requests.length === 0 ? (
+                    <Text style={styles.noRequestsText}>No incoming requests</Text>
+                ) : (
+                    <ScrollView>
+                        {requests.map((request, index) => (
+                            <View key={index} style={styles.requestItem}>
+                                <Text style={styles.requestText}>{request.requesterUsername}</Text>
+                                <View style={styles.buttonContainer}>
+                                    <TouchableOpacity style={styles.iconButton} onPress={() => acceptFriendRequest(request)}>
+                                        <Image source={require('../../../../assets/icons/check-mark.png')} style={styles.icon} />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.iconButton} onPress={() => declineFriendRequest(request)}>
+                                        <Image source={require('../../../../assets/icons/close.png')} style={styles.icon} />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        ))}
+                    </ScrollView>
+                )}
+            </View>
         </View>
     );
 };
@@ -140,42 +154,45 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
     },
-    listContainer: {
-        marginTop: 20,
-        marginBottom: 20,
+    sectionTitle: {
+        fontSize: 18,
+        fontFamily: 'Poppins-SemiBold',
+        marginBottom: 10,
     },
-    listItem: {
-        padding: 15,
+    requestsContainer: {
+        borderWidth: 2,
+        borderColor: '#000',
+        borderRadius: 10,
+        padding: 10,
+        maxHeight: 300, // Adjust the height as needed
+    },
+    requestItem: {
+        padding: 10,
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    listText: {
+    requestText: {
         fontSize: 16,
+        fontFamily: 'Poppins',
     },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
+    noRequestsText: {
+        fontSize: 16,
+        color: '#999',
+        textAlign: 'center',
+        padding: 20,
     },
     buttonContainer: {
         flexDirection: 'row',
     },
-    acceptButton: {
-        backgroundColor: '#007bff',
-        padding: 5,
-        borderRadius: 5,
-        marginRight: 10,
+    iconButton: {
+        marginLeft: 10,
     },
-    declineButton: {
-        backgroundColor: '#dc3545',
-        padding: 5,
-        borderRadius: 5,
-    },
-    buttonText: {
-        color: '#fff',
+    icon: {
+        width: 24,
+        height: 24,
     },
 });
 

@@ -12,6 +12,9 @@ const SocialLayout = () => {
           
         }}
       />
+      <Stack.Screen 
+        name="components/AddFriendScreen"
+        options={{ headerShown: false }} />
     </Stack>
   );
 };

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, Text, Modal } from 'react-native';
+import { View, TextInput, StyleSheet, ScrollView, TouchableOpacity, Text, Modal, Image, Button } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { ref, onValue, push, set, get, child } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
 import { BlurView } from 'expo-blur';
+import { useRouter } from 'expo-router';
 
 type User = {
     uid: string;
@@ -13,34 +14,19 @@ type User = {
 
 const UserList = () => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [Users, setUsers] = useState<User[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [searchResults, setSearchResults] = useState<User[]>([]);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [tabVisible, setTabVisible] = useState<boolean>(false);
     const [sendingRequest, setSendingRequest] = useState<boolean>(false);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [friends, setFriends] = useState<User[]>([]);
+    const router = useRouter();
 
     useEffect(() => {
         const auth = getAuth();
         const currentUser = auth.currentUser;
         if (!currentUser) return;
-
-        // Fetch Users list
-        const UsersRef = ref(FIREBASE_DB, `users/${currentUser.uid}/UsersList`);
-        onValue(UsersRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                const UsersList = Object.keys(data).map(key => ({
-                    uid: key,
-                    email: data[key].email,
-                    username: data[key].username,
-                }));
-                setUsers(UsersList);
-            } else {
-                setUsers([]);
-            }
-        });
 
         // Fetch friends list
         const friendsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/friendsList`);
@@ -82,9 +68,8 @@ const UserList = () => {
                         username: users[key].username,
                     }));
 
-                // Filter out users who are already friends or in the users list
+                // Filter out users who are already friends
                 const filteredResults = results.filter(user => 
-                    !Users.some(User => User.uid === user.uid) &&
                     !friends.some(friend => friend.uid === user.uid)
                 );
 
@@ -95,19 +80,19 @@ const UserList = () => {
         }
     };
 
-    const handleUserClick = (User: User) => {
-        // Handle User click
-        if (selectedUser && selectedUser.uid === User.uid) {
+    const handleUserClick = (user: User) => {
+        // Handle user click
+        if (selectedUser && selectedUser.uid === user.uid) {
             setSelectedUser(null);
             setTabVisible(false);
         } else {
-            setSelectedUser(User);
+            setSelectedUser(user);
             setTabVisible(true);
         }
     };
 
     const sendFriendRequest = async () => {
-        // Handle sending User request
+        // Handle sending user request
         if (selectedUser) {
             setSendingRequest(true);
             try {
@@ -141,7 +126,6 @@ const UserList = () => {
             }
         }
     };
-    
 
     return (
         <View style={styles.container}>
@@ -154,15 +138,17 @@ const UserList = () => {
                     onChangeText={setSearchQuery}
                     value={searchQuery}
                 />
-                <Button title="Search" onPress={() => searchUsers(searchQuery)} />
+                <TouchableOpacity onPress={() => searchUsers(searchQuery)} style={styles.searchButton}>
+                    <Image source={require('../../../../assets/icons/searchblack.png')} style={styles.searchIcon} />
+                </TouchableOpacity>
             </View>
             <ScrollView style={styles.listContainer}>
-                {searchResults.map((User, index) => (
+                {searchResults.map((user, index) => (
                     <View key={index}>
-                        <TouchableOpacity style={styles.listItem} onPress={() => handleUserClick(User)}>
-                            <Text style={styles.listText}>{User.username}</Text>
+                        <TouchableOpacity style={styles.listItem} onPress={() => handleUserClick(user)}>
+                            <Text style={styles.listText}>{user.username}</Text>
                         </TouchableOpacity>
-                        {selectedUser && selectedUser.uid === User.uid && tabVisible && (
+                        {selectedUser && selectedUser.uid === user.uid && tabVisible && (
                             <View style={styles.tabContainer}>
                                 <TouchableOpacity style={styles.tabButton} onPress={sendFriendRequest} disabled={sendingRequest}>
                                     <Text style={styles.tabButtonText}>Send Friend Request</Text>
@@ -172,6 +158,10 @@ const UserList = () => {
                     </View>
                 ))}
             </ScrollView>
+
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
 
             <Modal
                 transparent={true}
@@ -198,6 +188,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
+        fontFamily: 'Poppins-SemiBold',
         marginBottom: 10,
     },
     searchContainer: {
@@ -207,14 +198,21 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        borderWidth: 1,
-        borderColor: '#ccc',
+        borderWidth: 2,
+        borderColor: '#000',
         borderRadius: 5,
         padding: 10,
     },
+    searchButton: {
+        marginLeft: 10,
+    },
+    searchIcon: {
+        width: 24,
+        height: 24,
+    },
     listContainer: {
-        borderWidth: 1,
-        borderColor: '#ccc',
+        borderWidth: 2,
+        borderColor: '#000',
         borderRadius: 10,
         maxHeight: 300,
     },
@@ -225,6 +223,7 @@ const styles = StyleSheet.create({
     },
     listText: {
         fontSize: 16,
+        fontFamily: 'Poppins',
     },
     tabContainer: {
         flexDirection: 'row',
@@ -233,7 +232,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     tabButton: {
-        backgroundColor: '#007bff',
+        backgroundColor: '#000000',
         padding: 5,
         borderRadius: 5,
         marginLeft: 5,
@@ -264,6 +263,23 @@ const styles = StyleSheet.create({
     modalText: {
         marginBottom: 15,
         textAlign: 'center',
+    },
+    backButton: {
+        borderRadius: 8,
+        paddingVertical: 20,
+        paddingHorizontal: 40,
+        backgroundColor: '#F87171',
+        marginTop: 10,
+        marginHorizontal: 10,
+        marginBottom: 10,
+
+    },
+    backButtonText: {
+        color: '#000000',
+        fontSize: 20,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        fontFamily: 'Lato',
     },
 });
 

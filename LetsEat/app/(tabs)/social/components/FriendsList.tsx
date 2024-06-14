@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, Text } from 'react-native';
+import { View, TextInput, StyleSheet, ScrollView, TouchableOpacity, Text, Image, Alert } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { ref, onValue, remove } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
@@ -21,7 +21,7 @@ const FriendsList = () => {
         const auth = getAuth();
         const currentUser = auth.currentUser;
         if (!currentUser) return;
-    
+
         // Fetch friends list
         const friendsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/friendsList`);
         onValue(friendsRef, (snapshot) => {
@@ -31,7 +31,7 @@ const FriendsList = () => {
                     uid: key,
                     email: data[key].email,
                     username: data[key].username,
-                }));
+                })).sort((a, b) => a.username.localeCompare(b.username)); // Sort alphabetically
                 setFriends(friendsList);
                 setFilteredFriends(friendsList); // Initialize filtered friends
             } else {
@@ -69,22 +69,34 @@ const FriendsList = () => {
         }
     };
 
+    const confirmRemoveFriend = () => {
+        Alert.alert(
+            'Remove Friend',
+            'Are you sure you want to remove this friend?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'OK', onPress: handleRemoveFriend },
+            ],
+            { cancelable: false }
+        );
+    };
+
     const handleRemoveFriend = async () => {
         // Handle removing friend
         if (selectedFriend) {
             const auth = getAuth();
             const currentUser = auth.currentUser;
             if (!currentUser) return;
-    
+
             try {
                 // Remove friend from current user's friend list
                 const currentUserFriendsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/friendsList/${selectedFriend.uid}`);
                 await remove(currentUserFriendsRef);
-    
+
                 // Remove current user from friend's friend list
                 const friendFriendsRef = ref(FIREBASE_DB, `users/${selectedFriend.uid}/friendsList/${currentUser.uid}`);
                 await remove(friendFriendsRef);
-    
+
                 console.log('Friend removed:', selectedFriend);
             } catch (error) {
                 console.error('Error removing friend:', (error as Error).message);
@@ -105,7 +117,9 @@ const FriendsList = () => {
                     onChangeText={setSearchQuery}
                     value={searchQuery}
                 />
-                <Button title="Search" onPress={() => searchFriends(searchQuery)} />
+                <TouchableOpacity onPress={() => searchFriends(searchQuery)} style={styles.searchButton}>
+                    <Image source={require('../../../../assets/icons/searchblack.png')} style={styles.searchIcon} />
+                </TouchableOpacity>
             </View>
             <ScrollView style={styles.listContainer}>
                 {filteredFriends.map((friend, index) => (
@@ -118,7 +132,7 @@ const FriendsList = () => {
                                 <TouchableOpacity style={styles.tabButton} onPress={handleViewProfile}>
                                     <Text style={styles.tabButtonText}>View Profile</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.tabButton} onPress={handleRemoveFriend}>
+                                <TouchableOpacity style={styles.removeButton} onPress={confirmRemoveFriend}>
                                     <Text style={styles.tabButtonText}>Remove</Text>
                                 </TouchableOpacity>
                             </View>
@@ -139,6 +153,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
+        fontFamily: 'Poppins-SemiBold'
     },
     searchContainer: {
         flexDirection: 'row',
@@ -147,14 +162,21 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        borderWidth: 1,
-        borderColor: '#ccc',
+        borderWidth: 2,
+        borderColor: '#000',
         borderRadius: 5,
         padding: 10,
     },
+    searchButton: {
+        marginLeft: 10,
+    },
+    searchIcon: {
+        width: 24,
+        height: 24,
+    },
     listContainer: {
-        borderWidth: 1,
-        borderColor: '#ccc',
+        borderWidth: 2,
+        borderColor: '#000',
         borderRadius: 10,
         maxHeight: 300,
     },
@@ -165,6 +187,7 @@ const styles = StyleSheet.create({
     },
     listText: {
         fontSize: 16,
+        fontFamily: 'Poppins',
     },
     tabContainer: {
         flexDirection: 'row',
@@ -175,13 +198,20 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 10,
     },
     tabButton: {
-        backgroundColor: '#007bff',
+        backgroundColor: '#000000',
+        padding: 5,
+        borderRadius: 5,
+        marginLeft: 5,
+    },
+    removeButton: {
+        backgroundColor: '#ff004f',
         padding: 5,
         borderRadius: 5,
         marginLeft: 5,
     },
     tabButtonText: {
         color: '#fff',
+        fontFamily: 'Poppins',
     },
 });
 
