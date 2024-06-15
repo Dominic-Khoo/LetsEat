@@ -20,7 +20,11 @@ interface Request {
     time?: string;
 }
 
-const Incoming = () => {
+interface IncomingProps {
+    onRequestUpdate: () => void;
+}
+
+const Incoming: React.FC<IncomingProps> = ({ onRequestUpdate }) => {
     const [activeTab, setActiveTab] = useState<TabType>('Open Jio');
     const [requests, setRequests] = useState<{ [key in TabType]: Request[] }>({
         'Open Jio': [],
@@ -38,7 +42,7 @@ const Incoming = () => {
         const currentUser = auth.currentUser;
         if (!currentUser) return;
 
-        const requestsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/${type === 'Open Jio' ? 'openJioRequests' : 'bookingRequests'}`);
+        const requestsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/${type === 'Open Jio' ? 'openJioRequests' : type === 'Bookings' ? 'bookingRequests' : 'takeawayRequests'}`);
 
         const snapshot = await get(requestsRef);
         if (snapshot.exists()) {
@@ -46,7 +50,7 @@ const Incoming = () => {
             const requests = Object.keys(data).map(key => ({
                 id: key,
                 type,
-                message: data[key].requesterUsername,
+                message: data[key].message,
                 requesterEmail: data[key].requesterEmail,
                 requesterUid: data[key].requesterUid,
                 requesterUsername: data[key].requesterUsername,
@@ -54,10 +58,11 @@ const Incoming = () => {
                 time: data[key].time,
             }));
 
-            const uniqueRequesters = new Set(requests.map(request => request.requesterUid));
+            // Count unique requests based on both requesterUid and time
+            const uniqueRequests = new Set(requests.map(request => `${request.requesterUid}-${request.date}-${request.time}`));
             setUniqueRequestsCount(prevCounts => ({
                 ...prevCounts,
-                [type]: uniqueRequesters.size,
+                [type]: uniqueRequests.size,
             }));
 
             setRequests(prevRequests => ({
@@ -66,14 +71,20 @@ const Incoming = () => {
             }));
         } else {
             setUniqueRequestsCount(prevCounts => ({
-            ...prevCounts,
-            [type]: 0,
-        }))};
+                ...prevCounts,
+                [type]: 0,
+            }));
+        }
     };
 
     const handleTabPress = (tab: TabType) => {
         setActiveTab(tab);
         fetchRequests(tab);
+    };
+
+    const handleRequestUpdate = () => {
+        fetchRequests(activeTab);
+        onRequestUpdate();
     };
 
     useEffect(() => {
@@ -96,8 +107,8 @@ const Incoming = () => {
                 ))}
             </View>
             <ScrollView style={styles.requestContainer}>
-                {activeTab === 'Open Jio' && <IncomingOpenJio />}
-                {activeTab === 'Bookings' && <IncomingBookings />}
+                {activeTab === 'Open Jio' && <IncomingOpenJio onRequestUpdate={handleRequestUpdate} />}
+                {activeTab === 'Bookings' && <IncomingBookings onRequestUpdate={handleRequestUpdate} />}
                 {activeTab === 'Takeaway' && <Takeaway />}
             </ScrollView>
         </View>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { ref, onValue, remove, update, get } from 'firebase/database';
+import { ref, onValue, remove, get, push, set } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
 
 interface Request {
@@ -65,11 +65,11 @@ const formatFirebaseDate = (dateString: string) => {
     return `${year}-${month}-${day}`;
 };
 
-const sanitizeStringForFirebase = (str: string) => {
-    return str.replace(/[.#$/[\]]/g, '_');
-};
+interface IncomingBookingsProps {
+    onRequestUpdate: () => void;
+}
 
-const IncomingBookings = () => {
+const IncomingBookings: React.FC<IncomingBookingsProps> = ({ onRequestUpdate }) => {
     const [requests, setRequests] = useState<Request[]>([]);
 
     useEffect(() => {
@@ -91,7 +91,16 @@ const IncomingBookings = () => {
                     time: data[key].time,
                 }));
 
-                setRequests(bookingRequests);
+                // Remove duplicate booking requests (same date, time, and person)
+                const uniqueRequests = bookingRequests.filter((request, index, self) =>
+                    index === self.findIndex((r) =>
+                        r.requesterUid === request.requesterUid &&
+                        r.date === request.date &&
+                        r.time === request.time
+                    )
+                );
+
+                setRequests(uniqueRequests);
             }
         });
     }, []);
@@ -102,7 +111,7 @@ const IncomingBookings = () => {
         if (!currentUser) return;
 
         const currentUserUid = currentUser.uid;
-        const currentUsername = currentUser.displayName;
+        const currentUsername = currentUser.displayName || '';
 
         const acceptedRequest = requests.find(request => request.id === id);
         if (!acceptedRequest) {
@@ -131,26 +140,56 @@ const IncomingBookings = () => {
         };
 
         try {
-            const sanitizedDate = sanitizeStringForFirebase(firebaseDate);
-            const userAgendaRef = ref(FIREBASE_DB, `users/${currentUserUid}/agenda/${sanitizedDate}`);
-            const userAgendaSnapshot = await get(userAgendaRef);
-            const userEvents: Event[] = userAgendaSnapshot.val() || [];
+            const userEventsRef = ref(FIREBASE_DB, `users/${currentUserUid}/events`);
+            const userEventsSnapshot = await get(userEventsRef);
+            const userEvents: Event[] = userEventsSnapshot.val() ? Object.values(userEventsSnapshot.val()) : [];
 
-            const updatedUserEvents = [...userEvents, newEvent];
-            await update(ref(FIREBASE_DB, `users/${currentUserUid}/agenda`), { [sanitizedDate]: updatedUserEvents });
+            const eventExists = userEvents.some(event =>
+                event.day === newEvent.day &&
+                event.time === newEvent.time &&
+                event.name === newEvent.name
+            );
 
-            const senderAgendaRef = ref(FIREBASE_DB, `users/${requesterUid}/agenda/${sanitizedDate}`);
-            const senderAgendaSnapshot = await get(senderAgendaRef);
-            const senderEvents: Event[] = senderAgendaSnapshot.val() || [];
+            if (!eventExists) {
+                const newUserEventRef = push(userEventsRef);
+                await set(newUserEventRef, newEvent);
 
-            const updatedSenderEvents = [...senderEvents, newSenderEvent];
-            await update(ref(FIREBASE_DB, `users/${requesterUid}/agenda`), { [sanitizedDate]: updatedSenderEvents });
+                const senderEventsRef = ref(FIREBASE_DB, `users/${requesterUid}/events`);
+                const newSenderEventRef = push(senderEventsRef);
+                await set(newSenderEventRef, newSenderEvent);
+            }
 
-            const requestsRef = ref(FIREBASE_DB, `users/${currentUserUid}/bookingRequests/${id}`);
-            await remove(requestsRef);
+            // Remove all identical booking requests (same date, time, and person)
+            const requestsRef = ref(FIREBASE_DB, `users/${currentUserUid}/bookingRequests`);
+            const snapshot = await get(requestsRef);
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                const allRequests = Object.keys(data).map(key => ({
+                    id: key,
+                    requesterUid: data[key].requesterUid,
+                    date: data[key].date,
+                    time: data[key].time,
+                }));
 
-            const updatedRequests = requests.filter(request => request.id !== id);
-            setRequests(updatedRequests);
+                const requestsToDelete = allRequests.filter(request =>
+                    request.requesterUid === requesterUid &&
+                    request.date === date &&
+                    request.time === time
+                );
+                for (const request of requestsToDelete) {
+                    await remove(ref(FIREBASE_DB, `users/${currentUserUid}/bookingRequests/${request.id}`));
+                }
+
+                const updatedRequests = requests.filter(request =>
+                    !(request.requesterUid === requesterUid &&
+                      request.date === date &&
+                      request.time === time)
+                );
+                setRequests(updatedRequests);
+            }
+
+            onRequestUpdate();
+
         } catch (error) {
             console.error("Error accepting booking request:", error);
         }
@@ -161,16 +200,53 @@ const IncomingBookings = () => {
         const currentUser = auth.currentUser;
         if (!currentUser) return;
 
-        const requestsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/bookingRequests/${id}`);
-        await remove(requestsRef);
+        const declinedRequest = requests.find(request => request.id === id);
+        if (!declinedRequest) {
+            console.error("Declined request not found");
+            return;
+        }
 
-        const updatedRequests = requests.filter(request => request.id !== id);
-        setRequests(updatedRequests);
+        const { requesterUid, date, time } = declinedRequest;
+
+        try {
+            const requestsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/bookingRequests`);
+            const snapshot = await get(requestsRef);
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                const allRequests = Object.keys(data).map(key => ({
+                    id: key,
+                    requesterUid: data[key].requesterUid,
+                    date: data[key].date,
+                    time: data[key].time,
+                }));
+
+                const requestsToDelete = allRequests.filter(request =>
+                    request.requesterUid === requesterUid &&
+                    request.date === date &&
+                    request.time === time
+                );
+                for (const request of requestsToDelete) {
+                    await remove(ref(FIREBASE_DB, `users/${currentUser.uid}/bookingRequests/${request.id}`));
+                }
+
+                const updatedRequests = requests.filter(request =>
+                    !(request.requesterUid === requesterUid &&
+                      request.date === date &&
+                      request.time === time)
+                );
+                setRequests(updatedRequests);
+            }
+
+            onRequestUpdate();
+
+        } catch (error) {
+            console.error("Error declining booking request:", error);
+        }
     };
 
     const renderRequests = () => {
         return requests.map(request => (
-            <View key={request.id} style={styles.requestItem }>
+            <View key={request.id} style={styles.requestItem}>
                 <View style={styles.requestContent}>
                     <Image source={require('../../../../assets/icons/reserved.png')} style={styles.leftIcon} />
                     <View style={styles.textContainer}>

@@ -2,57 +2,75 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Image, TouchableOpacity, Alert } from 'react-native';
 import { Agenda, AgendaEntry, AgendaSchedule } from 'react-native-calendars';
 import { getAuth } from 'firebase/auth';
-import { ref, onValue, remove, get, update } from 'firebase/database';
-import { FIREBASE_DB } from '../../../../firebaseConfig'; // Adjust the path to your Firebase config
+import { ref, remove, get, set } from 'firebase/database';
+import { FIREBASE_DB } from '../../../../firebaseConfig';
 
-// Extend the AgendaEntry type to include the icon property
 interface CustomAgendaEntry extends AgendaEntry {
+  id: string;
   icon: string;
-  time?: string; // Optional time property for events with time
+  time?: string;
 }
 
-const Schedule = () => {
+interface ScheduleProps {
+  refreshTrigger: number;
+}
+
+const Schedule: React.FC<ScheduleProps> = ({ refreshTrigger }) => {
   const [items, setItems] = useState<AgendaSchedule>({});
   const auth = getAuth();
   const currentUser = auth.currentUser;
 
-  useEffect(() => {
+  const fetchEventsAndUpdateAgenda = async () => {
     if (currentUser) {
-      const userAgendaRef = ref(FIREBASE_DB, `users/${currentUser.uid}/agenda`);
-      onValue(userAgendaRef, (snapshot) => {
+      try {
+        const eventsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/events`);
+        const snapshot = await get(eventsRef);
         const data = snapshot.val();
-        if (data) {
-          const sortedData = sortEvents(data);
-          setItems(sortedData);
-          console.log('Sorted data:', sortedData); // Log sorted data
-        } else {
-          setItems({});
-        }
-      });
-    }
-  }, [currentUser]);
+        const events = data ? Object.keys(data).map(key => ({ ...data[key], id: key })) as CustomAgendaEntry[] : [];
 
-  const handleRemoveEvent = async (date: string, eventName: string, eventTime?: string) => {
-    if (currentUser) {
-      const userAgendaRef = ref(FIREBASE_DB, `users/${currentUser.uid}/agenda/${date}`);
-      const snapshot = await get(userAgendaRef);
-      const events: CustomAgendaEntry[] = (snapshot.val() || []).filter((event: any) => event.icon);
+        const newAgenda: AgendaSchedule = {};
 
-      const updatedEvents = events.filter(event => !(event.name === eventName && event.time === eventTime));
-      console.log('Updated events after removal:', updatedEvents); // Log updated events
+        events.forEach(event => {
+          if (!newAgenda[event.day]) {
+            newAgenda[event.day] = [];
+          }
+          newAgenda[event.day].push(event);
+        });
 
-      if (updatedEvents.length === 0) {
-        await remove(userAgendaRef);
-      } else {
-        await update(ref(FIREBASE_DB, `users/${currentUser.uid}/agenda`), { [date]: updatedEvents });
+        const sortedData = sortEvents(newAgenda);
+        setItems(sortedData);
+        console.log('Sorted data:', sortedData);
+      } catch (error) {
+        console.error("Error fetching events and updating agenda:", error);
       }
-      setItems(prevItems => {
-        const updatedItems = { ...prevItems };
-        updatedItems[date] = sortEventsByTime(updatedEvents);
-        console.log('Updated items:', updatedItems); // Log updated items
-        return updatedItems;
-      });
     }
+  };
+
+  useEffect(() => {
+    fetchEventsAndUpdateAgenda();
+  }, [currentUser, refreshTrigger]);
+
+  const handleRemoveEvent = async (id: string) => {
+    if (currentUser) {
+      const eventRef = ref(FIREBASE_DB, `users/${currentUser.uid}/events/${id}`);
+      await remove(eventRef);
+      fetchEventsAndUpdateAgenda();
+    }
+  };
+
+  const parseTimeString = (timeString: string): Date => {
+    const [time, modifier] = timeString.split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+
+    if (modifier === 'PM' && hours !== 12) {
+      hours += 12;
+    } else if (modifier === 'AM' && hours === 12) {
+      hours = 0;
+    }
+
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date;
   };
 
   const getIconSource = (iconName: string) => {
@@ -83,7 +101,7 @@ const Schedule = () => {
           onPress={() =>
             Alert.alert('Remove Event', 'Are you sure you want to remove this event?', [
               { text: 'Cancel', style: 'cancel' },
-              { text: 'OK', onPress: () => handleRemoveEvent(customItem.day, customItem.name, customItem.time) },
+              { text: 'OK', onPress: () => handleRemoveEvent(customItem.id) },
             ])
           }
         >
@@ -94,9 +112,7 @@ const Schedule = () => {
   };
 
   const renderEmptyDate = () => {
-    return (
-      <View style={styles.emptyDate}></View>
-    );
+    return <View style={styles.emptyDate}></View>;
   };
 
   const theme = {
@@ -120,7 +136,7 @@ const Schedule = () => {
     return events.sort((a, b) => {
       if (!a.time) return -1;
       if (!b.time) return 1;
-      return new Date(`1970-01-01T${a.time}`).getTime() - new Date(`1970-01-01T${b.time}`).getTime();
+      return parseTimeString(a.time).getTime() - parseTimeString(b.time).getTime();
     });
   };
 
@@ -171,7 +187,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
-    flexDirection: 'column', // Stack the time and booking text vertically
+    flexDirection: 'column',
   },
   timeText: {
     fontSize: 16,

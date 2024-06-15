@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { ref, onValue, remove, update, get } from 'firebase/database';
+import { ref, onValue, remove, get, push, set } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
 
 interface Request {
@@ -17,9 +17,14 @@ interface Event {
     name: string;
     height: number;
     icon: string;
+    type: string;
 }
 
-const IncomingOpenJio = () => {
+interface IncomingOpenJioProps {
+    onRequestUpdate: () => void;
+}
+
+const IncomingOpenJio: React.FC<IncomingOpenJioProps> = ({ onRequestUpdate }) => {
     const [requests, setRequests] = useState<Request[]>([]);
 
     useEffect(() => {
@@ -38,7 +43,13 @@ const IncomingOpenJio = () => {
                     requesterUid: data[key].requesterUid,
                     requesterUsername: data[key].requesterUsername,
                 }));
-                setRequests(openJioRequests);
+
+                // Remove duplicate requests from the same person
+                const uniqueRequests = openJioRequests.filter((request, index, self) =>
+                    index === self.findIndex((r) => r.requesterUid === request.requesterUid)
+                );
+
+                setRequests(uniqueRequests);
             }
         });
     }, []);
@@ -56,56 +67,68 @@ const IncomingOpenJio = () => {
 
         const { requesterUid, requesterUsername } = acceptedRequest;
 
-        const currentDate = new Date().toISOString().split('T')[0];
+        // Convert the current date to Singapore timezone
+        const options: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Singapore', year: 'numeric', month: '2-digit', day: '2-digit' };
+        const currentDate = new Date().toLocaleDateString('en-CA', options);
 
         const newEvent: Event = {
             day: currentDate,
             name: `Open Jio with ${requesterUsername}`,
             height: 50,
             icon: 'eat',
+            type: 'Open Jio',
         };
         const newSenderEvent: Event = {
             day: currentDate,
             name: `Open Jio with ${currentUsername}`,
             height: 50,
             icon: 'eat',
+            type: 'Open Jio',
         };
 
         try {
-            console.log("Starting transaction to accept Open Jio request");
+            // Fetch current events to check for duplicates
+            const userEventsRef = ref(FIREBASE_DB, `users/${currentUserUid}/events`);
+            const userEventsSnapshot = await get(userEventsRef);
+            const userEvents = userEventsSnapshot.val() || {};
 
-            // Update the current user's agenda
-            const userAgendaRef = ref(FIREBASE_DB, `users/${currentUserUid}/agenda/${currentDate}`);
-            const userAgendaSnapshot = await get(userAgendaRef);
-            const userEvents: Event[] = userAgendaSnapshot.val() ? Object.values(userAgendaSnapshot.val()) : [];
+            const eventExists = Object.values(userEvents).some((event: unknown) => {
+                const e = event as Event;
+                return e.name === newEvent.name && e.day === newEvent.day;
+            });
 
-            console.log("Current user's events:", userEvents);
+            if (!eventExists) {
+                // Update the current user's events
+                const newUserEventRef = push(userEventsRef);
+                await set(newUserEventRef, newEvent);
 
-            const updatedUserEvents = userEvents.some(event => event.name === newEvent.name) ? userEvents : [...userEvents, newEvent];
-            await update(ref(FIREBASE_DB, `users/${currentUserUid}/agenda`), { [currentDate]: updatedUserEvents });
+                // Update the requester's events
+                const senderEventsRef = ref(FIREBASE_DB, `users/${requesterUid}/events`);
+                const newSenderEventRef = push(senderEventsRef);
+                await set(newSenderEventRef, newSenderEvent);
+            }
 
-            console.log("Updated current user's agenda:", updatedUserEvents);
+            // Remove all requests from the accepted requester
+            const requestsRef = ref(FIREBASE_DB, `users/${currentUserUid}/openJioRequests`);
+            const snapshot = await get(requestsRef);
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                const allRequests = Object.keys(data).map(key => ({
+                    id: key,
+                    requesterUid: data[key].requesterUid,
+                }));
 
-            // Update the requester's agenda
-            const senderAgendaRef = ref(FIREBASE_DB, `users/${requesterUid}/agenda/${currentDate}`);
-            const senderAgendaSnapshot = await get(senderAgendaRef);
-            const senderEvents: Event[] = senderAgendaSnapshot.val() ? Object.values(senderAgendaSnapshot.val()) : [];
+                const requestsToDelete = allRequests.filter(request => request.requesterUid === requesterUid);
+                for (const request of requestsToDelete) {
+                    await remove(ref(FIREBASE_DB, `users/${currentUserUid}/openJioRequests/${request.id}`));
+                }
 
-            console.log("Requester's events:", senderEvents);
+                const updatedRequests = requests.filter(request => request.requesterUid !== requesterUid);
+                setRequests(updatedRequests);
+            }
 
-            const updatedSenderEvents = senderEvents.some(event => event.name === newSenderEvent.name) ? senderEvents : [...senderEvents, newSenderEvent];
-            await update(ref(FIREBASE_DB, `users/${requesterUid}/agenda`), { [currentDate]: updatedSenderEvents });
-
-            console.log("Updated requester's agenda:", updatedSenderEvents);
-
-            // Remove the accepted request
-            await remove(ref(FIREBASE_DB, `users/${currentUserUid}/openJioRequests/${id}`));
-
-            console.log("Removed accepted request");
-
-            // Update the state
-            const updatedRequests = requests.filter(request => request.id !== id);
-            setRequests(updatedRequests);
+            // Refresh agenda
+            onRequestUpdate();
 
         } catch (error) {
             console.error("Error accepting Open Jio request:", error);
@@ -117,18 +140,33 @@ const IncomingOpenJio = () => {
         const currentUser = auth.currentUser;
         if (!currentUser) return;
 
-        const requestToDecline = requests.find(request => request.id === id);
-        if (!requestToDecline) return;
+        const declinedRequest = requests.find(request => request.id === id);
+        if (!declinedRequest) return;
+
+        const { requesterUid } = declinedRequest;
 
         try {
-            // Remove the declined request
-            await remove(ref(FIREBASE_DB, `users/${currentUser.uid}/openJioRequests/${id}`));
+            // Remove all requests from the declined requester
+            const requestsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/openJioRequests`);
+            const snapshot = await get(requestsRef);
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                const allRequests = Object.keys(data).map(key => ({
+                    id: key,
+                    requesterUid: data[key].requesterUid,
+                }));
 
-            console.log("Removed declined request");
+                const requestsToDelete = allRequests.filter(request => request.requesterUid === requesterUid);
+                for (const request of requestsToDelete) {
+                    await remove(ref(FIREBASE_DB, `users/${currentUser.uid}/openJioRequests/${request.id}`));
+                }
 
-            // Update the state
-            const updatedRequests = requests.filter(request => request.id !== id);
-            setRequests(updatedRequests);
+                const updatedRequests = requests.filter(request => request.requesterUid !== requesterUid);
+                setRequests(updatedRequests);
+            }
+
+            // Refresh agenda
+            onRequestUpdate();
 
         } catch (error) {
             console.error("Error declining Open Jio request:", error);
@@ -172,7 +210,6 @@ const styles = StyleSheet.create({
     },
     requestContainer: {
         flex: 1,
-
     },
     requestItem: {
         backgroundColor: '#ffd1df',
@@ -181,7 +218,6 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderWidth: 3,
         borderColor: '#000',
-
     },
     requestContent: {
         flexDirection: 'row',
