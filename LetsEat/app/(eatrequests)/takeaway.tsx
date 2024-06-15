@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Modal, TouchableWithoutFeedback, Image } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, push, set } from 'firebase/database';
 import { FIREBASE_DB } from '../../firebaseConfig';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 
 type Friend = {
     uid: string;
@@ -11,13 +11,13 @@ type Friend = {
     username: string;
 };
 
-const BookingScreen = () => {
+const TakeawayScreen = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [friends, setFriends] = useState<Friend[]>([]);
     const [filteredFriends, setFilteredFriends] = useState<Friend[]>([]);
     const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
+    const [location, setLocation] = useState('');
     const [requestSentModalVisible, setRequestSentModalVisible] = useState(false);
-    const router = useRouter();
 
     useEffect(() => {
         const auth = getAuth();
@@ -60,9 +60,34 @@ const BookingScreen = () => {
         setSelectedFriend(friend);
     };
 
-    // Handle routing to the booking details screen
-    const setBookingDetails = (friend: Friend) => {
-        router.push({ pathname: './bookingdetails', params: { friend: JSON.stringify(friend) } });
+    // Handle sending Takeaway Request
+    const sendTakeawayRequest = async (friend: Friend) => {
+        if (!location) {
+            alert("Please enter a location.");
+            return;
+        }
+
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+        if (!currentUser) return;
+
+        try {
+            const requestRef = ref(FIREBASE_DB, `users/${friend.uid}/takeawayRequests`);
+            const newRequestRef = push(requestRef);
+            await set(newRequestRef, {
+                requesterUid: currentUser.uid,
+                requesterEmail: currentUser.email,
+                requesterUsername: currentUser.displayName,
+                location: location,
+                timestamp: Date.now(),
+            });
+            console.log('Takeaway Request sent successfully to:', friend.email);
+            setRequestSentModalVisible(true); // Show the success modal
+            setLocation(''); // Clear the location input
+            setSelectedFriend(null); // Clear the selected friend
+        } catch (error) {
+            console.error('Error sending Takeaway Request:', (error as Error).message);
+        }
     };
 
     return (
@@ -70,7 +95,7 @@ const BookingScreen = () => {
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                 <Image source={require('../../assets/icons/back.png')} style={styles.backIcon} />
             </TouchableOpacity>
-            <Text style={styles.header}>Who to Book?</Text>
+            <Text style={styles.header}>Ask for Help!</Text>
             <TextInput
                 style={styles.searchInput}
                 placeholder="Search friends..."
@@ -86,11 +111,18 @@ const BookingScreen = () => {
             </ScrollView>
             {selectedFriend && (
                 <View style={styles.actionsContainer}>
+                    <Text style={styles.selectedFriendText}>Where to Takeaway From?</Text>
+                    <TextInput
+                        style={styles.locationInput}
+                        placeholder="Enter location..."
+                        onChangeText={setLocation}
+                        value={location}
+                    />
                     <TouchableOpacity
                         style={styles.actionButton}
-                        onPress={() => setBookingDetails(selectedFriend)}
+                        onPress={() => sendTakeawayRequest(selectedFriend)}
                     >
-                        <Text style={styles.actionButtonText}>Book with {selectedFriend.username}</Text>
+                        <Text style={styles.actionButtonText}>Ask {selectedFriend.username} for help!</Text>
                     </TouchableOpacity>
                 </View>
             )}
@@ -98,6 +130,8 @@ const BookingScreen = () => {
                 <TouchableWithoutFeedback onPress={() => setRequestSentModalVisible(false)}>
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
+                            <TouchableOpacity onPress={() => setRequestSentModalVisible(false)} style={styles.closeButtonContainer}>
+                            </TouchableOpacity>
                             <Text style={styles.modalText}>Request Sent Successfully!</Text>
                         </View>
                     </View>
@@ -159,6 +193,14 @@ const styles = StyleSheet.create({
     },
     selectedFriendText: {
         fontSize: 16,
+        fontFamily: 'Poppins',
+        marginBottom: 10,
+    },
+    locationInput: {
+        borderWidth: 2,
+        borderColor: '#000',
+        borderRadius: 10,
+        padding: 10,
         marginBottom: 10,
     },
     actionButton: {
@@ -171,6 +213,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         textAlign: 'center',
         fontSize: 16,
+        fontFamily: 'Poppins',
     },
     modalContainer: {
         flex: 1,
@@ -187,6 +230,15 @@ const styles = StyleSheet.create({
         fontSize: 18,
         textAlign: 'center',
     },
+    closeButtonContainer: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+    },
+    closeButtonIcon: {
+        width: 24,
+        height: 24,
+    },
 });
 
-export default BookingScreen;
+export default TakeawayScreen;

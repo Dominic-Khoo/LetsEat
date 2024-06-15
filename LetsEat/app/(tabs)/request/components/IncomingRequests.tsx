@@ -5,7 +5,7 @@ import { ref, onValue, remove, update, get } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
 import IncomingOpenJio from './OJRequests';
 import IncomingBookings from './BKRequests';
-import Takeaway from './TWRequests';
+import IncomingTakeaway from './TWRequests';
 
 type TabType = 'Open Jio' | 'Bookings' | 'Takeaway';
 
@@ -109,7 +109,7 @@ const Incoming: React.FC<IncomingProps> = ({ onRequestUpdate }) => {
             <ScrollView style={styles.requestContainer}>
                 {activeTab === 'Open Jio' && <IncomingOpenJio onRequestUpdate={handleRequestUpdate} />}
                 {activeTab === 'Bookings' && <IncomingBookings onRequestUpdate={handleRequestUpdate} />}
-                {activeTab === 'Takeaway' && <Takeaway />}
+                {activeTab === 'Takeaway' && <IncomingTakeaway onRequestUpdate={handleRequestUpdate} />}
             </ScrollView>
         </View>
     );

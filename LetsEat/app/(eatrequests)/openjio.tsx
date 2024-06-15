@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Modal, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Modal, TouchableWithoutFeedback, Image } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { ref, onValue, push, set } from 'firebase/database';
 import { FIREBASE_DB } from '../../firebaseConfig';
@@ -83,6 +83,9 @@ const OpenJioScreen = () => {
 
     return (
         <View style={styles.container}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Image source={require('../../assets/icons/back.png')} style={styles.backIcon} />
+            </TouchableOpacity>
             <Text style={styles.header}>Who to Jio?</Text>
             <TextInput
                 style={styles.searchInput}
@@ -99,18 +102,14 @@ const OpenJioScreen = () => {
             </ScrollView>
             {selectedFriend && (
                 <View style={styles.actionsContainer}>
-                    <Text style={styles.selectedFriendText}>Actions for {selectedFriend.username}:</Text>
                     <TouchableOpacity
                         style={styles.actionButton}
                         onPress={() => sendOpenJioRequest(selectedFriend)}
                     >
-                        <Text style={styles.actionButtonText}>Send Request</Text>
+                        <Text style={styles.actionButtonText}>Jio {selectedFriend.username}!</Text>
                     </TouchableOpacity>
                 </View>
             )}
-            <TouchableOpacity style={styles.actionButton} onPress={() => router.back()}>
-                <Text style={styles.actionButtonText}>Back</Text>
-            </TouchableOpacity>
             <Modal animationType="slide" transparent={true} visible={requestSentModalVisible}>
                 <TouchableWithoutFeedback onPress={() => setRequestSentModalVisible(false)}>
                     <View style={styles.modalContainer}>
@@ -129,23 +128,33 @@ const styles = StyleSheet.create({
         flex: 1,
         margin: 10,
     },
+    backButton: {
+        position: 'absolute',
+        top: 5,
+        left: 5,
+        zIndex: 1,
+    },
+    backIcon: {
+        width: 24,
+        height: 24,
+    },
     header: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontFamily: 'Poppins-SemiBold',
         marginBottom: 10,
         textAlign: 'center',
     },
     searchInput: {
-        borderWidth: 1,
-        borderColor: '#ccc',
+        borderWidth: 2,
+        borderColor: '#000',
         borderRadius: 10,
         padding: 10,
         marginBottom: 10,
     },
     friendsContainer: {
         maxHeight: 300,
-        borderWidth: 1,
-        borderColor: '#ccc',
+        borderWidth: 2,
+        borderColor: '#000',
         borderRadius: 10,
         marginBottom: 10,
     },
@@ -156,6 +165,7 @@ const styles = StyleSheet.create({
     },
     name: {
         fontSize: 18,
+        fontFamily: 'Poppins',
         color: '#333',
     },
     actionsContainer: {
@@ -169,7 +179,7 @@ const styles = StyleSheet.create({
     },
     actionButton: {
         padding: 10,
-        backgroundColor: '#007bff',
+        backgroundColor: '#F87171',
         borderRadius: 10,
         marginVertical: 5,
     },

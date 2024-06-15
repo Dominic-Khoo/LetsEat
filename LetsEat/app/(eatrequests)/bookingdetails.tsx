@@ -61,7 +61,7 @@ const BookingDetails = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.header}>Booking Request to {friendData.username}</Text>
+            <Text style={styles.header}>Booking with {friendData.username}</Text>
             <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.picker}>
                 <Text style={styles.pickerText}>
                     {date ? date.toLocaleDateString() : 'Select Date'}
@@ -92,7 +92,7 @@ const BookingDetails = () => {
                 <Text style={styles.buttonText}>Send Booking Request</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                <Text style={styles.backButtonText}>Back</Text>
+                <Text style={styles.backButtonText}>Go Back</Text>
             </TouchableOpacity>
         </View>
     );
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     },
     header: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontFamily: 'Poppins-SemiBold', 
         marginBottom: 20,
     },
     picker: {
@@ -121,9 +121,10 @@ const styles = StyleSheet.create({
     },
     pickerText: {
         fontSize: 18,
+        fontFamily: 'Poppins',
     },
     button: {
-        backgroundColor: '#007bff',
+        backgroundColor: '#f87171',
         padding: 15,
         borderRadius: 10,
         marginTop: 20,
@@ -133,10 +134,11 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#fff',
         fontSize: 16,
+        fontFamily: 'Poppins',
     },
     backButton: {
         padding: 10,
-        backgroundColor: '#007bff',
+        backgroundColor: 'black',
         borderRadius: 10,
         marginVertical: 5,
         width: '80%'

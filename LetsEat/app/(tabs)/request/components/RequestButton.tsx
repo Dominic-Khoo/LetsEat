@@ -1,9 +1,8 @@
 import { useState } from "react";
 import React from 'react';
-import { Text, View, TouchableOpacity, StyleSheet, Modal, TouchableWithoutFeedback} from "react-native";
+import { Text, View, TouchableOpacity, StyleSheet, Modal, TouchableWithoutFeedback, Image } from "react-native";
 import { BlurView } from 'expo-blur';
 import { router } from 'expo-router';
-
 
 const RequestButton = () => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -26,6 +25,9 @@ const RequestButton = () => {
                                   tint='dark'
                         />
                         <View style={styles.popup}>
+                            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButtonContainer}>
+                                <Image source={require('../../../../assets/icons/close.png')} style={styles.closeButtonIcon} />
+                            </TouchableOpacity>
                             <TouchableOpacity style={[styles.popupButton, styles.openJioButton]} onPress={() => {setModalVisible(false);
                                                                                                                  router.push("/(eatrequests)/openjio");}}>
                                 <Text style={[styles.popupText]}>Open Jio</Text>
@@ -34,11 +36,9 @@ const RequestButton = () => {
                                                                                                                  router.push("/(eatrequests)/booking");}}>
                                 <Text style={styles.popupText}>Booking</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.popupButton, styles.takeawayButton]} onPress={() => {}}>
+                            <TouchableOpacity style={[styles.popupButton, styles.takeawayButton]} onPress={() => {setModalVisible(false);
+                                                                                                                  router.push("/(eatrequests)/takeaway");}}>
                                 <Text style={styles.popupText}>Takeaway</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButtonContainer}>
-                                <Text style={styles.closeButtonText}>Close</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -84,11 +84,13 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         elevation: 5,
         width: '80%',
+        alignItems: 'center', // Ensure the content is centered
     },
     popupButton: {
         padding: 10,
         marginBottom: 10,
         borderRadius: 8,
+        width: '100%',
     },
     openJioButton: {
         backgroundColor: '#C04000',
@@ -109,14 +111,13 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins-SemiBold',
     },
     closeButtonContainer: {
-        backgroundColor: 'red',
-        borderRadius: 8,
-        padding: 10,
+        position: 'absolute',
+        top: 8,
+        right: 10,
     },
-    closeButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        textAlign: 'center',
+    closeButtonIcon: {
+        width: 20,
+        height: 20,
     },
 });
 

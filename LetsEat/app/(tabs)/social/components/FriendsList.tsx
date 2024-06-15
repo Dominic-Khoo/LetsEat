@@ -3,6 +3,7 @@ import { View, TextInput, StyleSheet, ScrollView, TouchableOpacity, Text, Image,
 import { getAuth } from 'firebase/auth';
 import { ref, onValue, remove } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
+import { useRouter } from 'expo-router';
 
 type Friend = {
     uid: string;
@@ -16,6 +17,7 @@ const FriendsList = () => {
     const [filteredFriends, setFilteredFriends] = useState<Friend[]>([]);
     const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
     const [tabVisible, setTabVisible] = useState<boolean>(false);
+    const router = useRouter();
 
     useEffect(() => {
         const auth = getAuth();
@@ -66,6 +68,13 @@ const FriendsList = () => {
         if (selectedFriend) {
             console.log('View profile:', selectedFriend);
             // Implement logic to view profile
+        }
+    };
+
+    const handleChat = () => {
+        // Navigate to Chat screen
+        if (selectedFriend) {
+            router.push(`./social/components/Chat?friendUid=${selectedFriend.uid}`);
         }
     };
 
@@ -132,6 +141,9 @@ const FriendsList = () => {
                                 <TouchableOpacity style={styles.tabButton} onPress={handleViewProfile}>
                                     <Text style={styles.tabButtonText}>View Profile</Text>
                                 </TouchableOpacity>
+                                <TouchableOpacity style={styles.chatButton} onPress={handleChat}>
+                                    <Text style={styles.tabButtonText}>Chat</Text>
+                                </TouchableOpacity>
                                 <TouchableOpacity style={styles.removeButton} onPress={confirmRemoveFriend}>
                                     <Text style={styles.tabButtonText}>Remove</Text>
                                 </TouchableOpacity>
@@ -197,8 +209,14 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 10,
         borderBottomRightRadius: 10,
     },
+    chatButton: {
+        backgroundColor: 'brown',
+        padding: 5,
+        borderRadius: 5,
+        marginLeft: 5,
+    },
     tabButton: {
-        backgroundColor: '#000000',
+        backgroundColor: 'black',
         padding: 5,
         borderRadius: 5,
         marginLeft: 5,
