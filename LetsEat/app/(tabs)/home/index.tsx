@@ -1,10 +1,11 @@
-import { Image, View, Text, Button } from "react-native";
+import { Image, View, Text, TouchableOpacity } from "react-native";
 import React, { useState, useEffect } from "react";
 import { icons } from "@/constants";
 import { router } from "expo-router";
 import { getAuth } from "firebase/auth";
 import { ref, onValue } from "firebase/database";
-import { FIREBASE_DB } from "../../firebaseConfig";
+import { FIREBASE_DB } from "../../../firebaseConfig";
+import Daily from "./components/Daily";
 
 const Home = () => {
   const [username, setUsername] = useState("");
@@ -29,22 +30,18 @@ const Home = () => {
       <View className="bg-red-400 rounded-1xl pt-5 pl-2 pr-2 pb-2">
         <Text className="text-2xl text-left pl-3 font-pblack">hi, {username}!</Text>
       </View>
-
-      <View className="pt-5 pl-2 pr-2 pb-12">
-        <Text className="text-xl text-left pl-3 font-pblack">
-          Schedule for Today
-        </Text>
-      </View>
-
+      <Daily />
       <View className="pt-5 pl-2 pr-2 pb-12"></View>
 
       <View className="flex-2 flex-row justify-space-between pt-10">
-        <View style={{ backgroundColor: "white", flex: 2, padding: 30 }}>
-          <Button
-            title="see new requests"
+        <View style={{ backgroundColor: "#F87171", flex: 2, padding: 30 }}>
+          <TouchableOpacity
             onPress={() => router.push("(tabs)/request")}
-          ></Button>
-          <Image source={icons.request} className="w-6 h-6 justify-center" />
+            style={{ alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }}
+          >
+            <Text style={{ color: 'white', fontFamily: 'Poppins-SemiBold', fontSize: 16, marginRight: 8 }}>See new requests</Text>
+            <Image source={icons.request} style={{ width: 24, height: 24 }} />
+          </TouchableOpacity>
         </View>
         <View style={{ backgroundColor: "black", flex: 2, padding: 30 }}></View>
       </View>
