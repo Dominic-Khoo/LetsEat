@@ -4,14 +4,17 @@ import {
   ScrollView,
   Text,
   Dimensions,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../firebaseConfig";
 import {
   createUserWithEmailAndPassword,
+  sendEmailVerification,
+  signOut,
   updateProfile,
 } from "firebase/auth";
-import { ref, set } from "firebase/database";
+import { child, get, ref, set } from "firebase/database";
 import { Link, router } from "expo-router";
 import FormField from "../../components/FormField";
 import CustomButton from "@/components/CustomButton";
@@ -23,33 +26,61 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
   const auth = FIREBASE_AUTH;
+  const dbRef = ref(FIREBASE_DB);
 
   const signUp = async () => {
     setLoading(true);
+    if (!email || !password || !username) {
+      Alert.alert("Error", "Please fill all fields");
+      setLoading(false);
+      return;
+    }
+
     try {
+      // Check if username exists
+      const snapshot = await get(child(dbRef, `usernames/${username}`));
+      if (snapshot.exists()) {
+        console.log("Username already taken");
+        Alert.alert("Username already taken");
+        return;
+      }
+
+      // create a new user
       const response = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
       const user = response.user;
+      console.log(user);
+
+      // Send an email verification to the users email
+
+      sendEmailVerification(user);
+      Alert.alert("A verification email has been sent to your email address.");
+
+      // Sign out the user
+      signOut(auth);
 
       // Set the displayName
       await updateProfile(user, { displayName: username });
 
       // Store user data in Firebase Realtime Database
       await set(ref(FIREBASE_DB, `users/${user.uid}`), {
-        uid: user.uid,
         email: user.email,
         username: username,
       });
+      // Add username to the usernames node
+      await set(ref(FIREBASE_DB, `usernames/${username}`), user.uid);
 
-      console.log('User created and data stored:', response);
-      // Navigate to another screen after successful signup
-      router.push("/home");
+      console.log("User created and data stored:", response);
     } catch (error: any) {
       console.log(error);
-      alert("Sign up failed: " + error.message);
+      if (error.code === "auth/email-already-in-use") {
+        Alert.alert("An account with this email already exists");
+      } else {
+        Alert.alert("Error", error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -64,9 +95,7 @@ const Signup = () => {
             minHeight: Dimensions.get("window").height - 100,
           }}
         >
-          <Text className="text-2xl font-semibold text-black font-psemibold">
-            Sign Up to LetsEat
-          </Text>
+          <Text className="text-2xl text-black font-psemibold">Register</Text>
 
           <FormField
             title="Username"

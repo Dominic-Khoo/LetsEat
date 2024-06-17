@@ -3,7 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { User, onAuthStateChanged } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { FIREBASE_AUTH } from "../firebaseConfig";
-import { router } from "expo-router";
+import { Slot, router } from "expo-router";
 import { useFonts } from "expo-font";
 
 export default function App() {
@@ -13,11 +13,11 @@ export default function App() {
     onAuthStateChanged(FIREBASE_AUTH, (user) => {
       console.log("user", user);
       setUser(user);
+
       if (user) {
-        Alert.alert("Success", "User signed in successfully");
-        router.push("/(tabs)/home");
+        router.push("/home");
       } else {
-        router.push("/(auth)/login");
+        router.push("/login");
       }
     });
   }, []);
