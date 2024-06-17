@@ -20,6 +20,7 @@ interface Event {
     name: string;
     height: number;
     icon: string;
+    type: string;
 }
 
 const formatDate = (dateString: string, timeString: string) => {
@@ -130,6 +131,7 @@ const IncomingBookings: React.FC<IncomingBookingsProps> = ({ onRequestUpdate }) 
             name: `Booking with ${requesterUsername}`,
             height: 50,
             icon: 'reserved',
+            type: 'Booking',
         };
         const newSenderEvent: Event = {
             day: firebaseDate,
@@ -137,6 +139,7 @@ const IncomingBookings: React.FC<IncomingBookingsProps> = ({ onRequestUpdate }) 
             name: `Booking with ${currentUsername}`,
             height: 50,
             icon: 'reserved',
+            type: 'Booking',
         };
 
         try {

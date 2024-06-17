@@ -54,7 +54,13 @@ const Schedule: React.FC<ScheduleProps> = ({ refreshTrigger }) => {
     if (currentUser) {
       const eventRef = ref(FIREBASE_DB, `users/${currentUser.uid}/events/${id}`);
       await remove(eventRef);
-      fetchEventsAndUpdateAgenda();
+      setItems(prevItems => {
+        const newItems = { ...prevItems };
+        Object.keys(newItems).forEach(day => {
+          newItems[day] = (newItems[day] as CustomAgendaEntry[]).filter(event => event.id !== id);
+        });
+        return newItems;
+      });
     }
   };
 
@@ -126,7 +132,7 @@ const Schedule: React.FC<ScheduleProps> = ({ refreshTrigger }) => {
     const sortedData: AgendaSchedule = {};
 
     Object.keys(data).forEach(date => {
-      sortedData[date] = sortEventsByTime((data[date] as CustomAgendaEntry[]).filter(event => event.icon));
+      sortedData[date] = sortEventsByTime(data[date] as CustomAgendaEntry[]);
     });
 
     return sortedData;
