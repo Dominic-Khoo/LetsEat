@@ -3,6 +3,8 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getDatabase } from "firebase/database";
+import { getStorage, ref } from "firebase/storage";
+
 import {
   REACT_APP_API_KEY,
   REACT_APP_AUTH_DOMAIN,
@@ -32,3 +34,6 @@ export const FIREBASE_AUTH = initializeAuth(app, {persistence: getReactNativePer
 });
 export const FIREBASE_DB = getDatabase(app);
 export const analytics  = getAnalytics(app);
+export const storage = getStorage(app);
+
+
