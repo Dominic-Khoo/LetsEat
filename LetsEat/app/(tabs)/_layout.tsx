@@ -15,12 +15,12 @@ const TabIcon = ({
   focused: boolean;
 }) => {
   return (
-    <View className="items-center justify-center gap-2">
+    <View>
       <Image
         source={icon}
         resizeMode="contain"
         tintColor={color}
-        className="w-6 h-6"
+        className="items-center justify-center mt-4 w-6 h-10"
       />
       <Text
         className={`${focused ? "font-psemibold" : "font-pregular"} text-xs`}

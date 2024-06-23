@@ -5,13 +5,12 @@ import {
   Image,
   Text,
   Dimensions,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { FIREBASE_AUTH } from "../../firebaseConfig";
-import {
-  signInWithEmailAndPassword,
-} from "firebase/auth";
-import { Link } from "expo-router";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { Link, router } from "expo-router";
 import { images } from "../../constants";
 import FormField from "../../components/FormField";
 import CustomButton from "@/components/CustomButton";
@@ -25,14 +24,26 @@ const Login = () => {
 
   const signIn = async () => {
     setLoading(true);
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill all fields");
+      setLoading(false);
+      return;
+    }
     try {
       const response = await signInWithEmailAndPassword(auth, email, password);
-      console.log(response);
+      const user = response.user;
+
+      // Check if user has verified their email
+      if (user.emailVerified == false) {
+        Alert.alert("Error", "Please verify your email address");
+        router.push("/login");
+      }
     } catch (error: any) {
-      console.log(error);
-      alert("Sign in failed: " + error.message);
-    } finally {
-      setLoading(false);
+      if (error.code === "auth/invalid-credential") {
+        Alert.alert("Your email or password was incorrect");
+      } else {
+        Alert.alert("Error", error.message);
+      }
     }
   };
 
@@ -46,14 +57,10 @@ const Login = () => {
           }}
         >
           <Image
-            source={images.logo}
+            source={images.logotry}
             resizeMode="contain"
-            className="w-[40-px] h-[250px]"
+            className="ml-20 w-[200px] h-[230px]"
           />
-
-          <Text className="text-2xl font-semibold text-black font-psemibold">
-            Log in to LetsEat!
-          </Text>
 
           <FormField
             title="Email"
@@ -72,6 +79,15 @@ const Login = () => {
             placeholder={""}
             props={undefined}
           />
+
+          <View>
+            <Link
+              href="/forgotpassword"
+              className="text-m text-right pt-2 text-gray-400"
+            >
+              Forgot Password?
+            </Link>
+          </View>
 
           <CustomButton
             title="Sign In"
