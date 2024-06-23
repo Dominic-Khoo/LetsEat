@@ -27,8 +27,10 @@ const Home = () => {
 
   return (
     <View>
-      <View className="bg-red-400 rounded-1xl pt-5 pl-2 pr-2 pb-2">
-        <Text className="text-2xl text-left pl-3 font-pblack">hi, {username}!</Text>
+      <View className="pt-5 pl-2 pr-2 pb-2">
+        <Text className="text-2xl text-left pl-3 font-pblack">
+          Hi, {username}!
+        </Text>
       </View>
       <Daily />
       <View className="pt-5 pl-2 pr-2 pb-12"></View>
@@ -37,9 +39,22 @@ const Home = () => {
         <View style={{ backgroundColor: "#F87171", flex: 2, padding: 30 }}>
           <TouchableOpacity
             onPress={() => router.push("(tabs)/request")}
-            style={{ alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }}
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "row",
+            }}
           >
-            <Text style={{ color: 'white', fontFamily: 'Poppins-SemiBold', fontSize: 16, marginRight: 8 }}>See new requests</Text>
+            <Text
+              style={{
+                color: "white",
+                fontFamily: "Poppins-SemiBold",
+                fontSize: 16,
+                marginRight: 8,
+              }}
+            >
+              See new requests
+            </Text>
             <Image source={icons.request} style={{ width: 24, height: 24 }} />
           </TouchableOpacity>
         </View>
