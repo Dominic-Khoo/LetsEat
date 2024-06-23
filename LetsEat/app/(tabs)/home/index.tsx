@@ -28,7 +28,7 @@ const Home = () => {
 
   return (
     <View>
-      <View className="pt-5 pl-2 pr-2 pb-2">
+      <View className=" bg-red-400 pt-5 pl-2 pr-2 pb-2">
         <Text className="text-2xl text-left pl-3 font-pblack">
           Hi, {username}!
         </Text>

@@ -11,11 +11,10 @@ import {
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { FIREBASE_AUTH, storage } from "@/firebaseConfig";
 import { FIREBASE_DB } from "@/firebaseConfig";
-import { child, ref as ref2, get, set } from "firebase/database";
+import { child, ref as ref2, get, set, update } from "firebase/database";
 import { router } from "expo-router";
 import { updateProfile } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
-import * as Permissions from "expo-permissions";
 import * as Linking from "expo-linking";
 
 const EditProfile = () => {
@@ -89,7 +88,7 @@ const EditProfile = () => {
         if (profilePicture) {
           const response = await fetch(profilePicture);
           const blob = await response.blob();
-          const storageRef = ref(storage, "images/");
+          const storageRef = ref(storage, `images/${user.uid}`);
           await uploadBytes(storageRef, blob);
           profilePictureURL = await getDownloadURL(storageRef);
 
@@ -97,7 +96,7 @@ const EditProfile = () => {
             photoURL: profilePictureURL,
           });
 
-          await set(ref2(FIREBASE_DB, `users/${user.uid}`), {
+          await update(ref2(FIREBASE_DB, `users/${user.uid}`), {
             profilePicture: profilePictureURL,
           });
           console.log("Profile picture saved successfully");
@@ -109,18 +108,30 @@ const EditProfile = () => {
 
     // Save other profile data
     if (user) {
-      if (username) {
+      try {
+        // Retrieve the existing user data
+        const userRef = ref2(FIREBASE_DB, `users/${user.uid}`);
+        const userSnapshot = await get(userRef);
+        const userData = userSnapshot.val();
+
+        // Update the user profile
         await updateProfile(user, {
           displayName: username,
         });
 
-        await set(ref2(FIREBASE_DB, `users/${user.uid}`), {
-          username: username,
-          bio: bio,
-          faculty: faculty,
-          campusAccomodation: campusAccomodation,
-          preferredCuisine: preferredCuisine,
+        // Update the database with the new data, keeping the existing email
+        await set(userRef, {
+          username: username || userData.username,
+          email: userData.email,
+          bio: bio || userData.bio,
+          faculty: faculty || userData.faculty,
+          campusAccomodation: campusAccomodation || userData.campusAccomodation,
+          preferredCuisine: preferredCuisine || userData.preferredCuisine,
         });
+
+        console.log("Profile data saved successfully");
+      } catch (error) {
+        console.log("Error saving profile data", error);
       }
     }
   };
