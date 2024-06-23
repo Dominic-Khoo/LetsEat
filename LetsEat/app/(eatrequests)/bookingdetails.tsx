@@ -41,14 +41,14 @@ const BookingDetails = () => {
                 time: time.toISOString(),
                 requesterEmail: currentUser.email,
                 requesterUid: currentUser.uid,
-                requesterUsername: currentUser.displayName, // Ensure the username is available here
+                requesterUsername: currentUser.displayName, 
             };
 
             const bookingRef = ref(database, `users/${friendData.uid}/bookingRequests`);
             push(bookingRef, bookingDetails)
                 .then(() => {
                     alert(`Booking request sent to ${friendData.username} for ${date.toLocaleDateString()} at ${time.toLocaleTimeString()}`);
-                    router.back(); // Navigate back to the previous screen
+                    router.back(); 
                 })
                 .catch((error) => {
                     console.error("Error sending booking request: ", error);
@@ -58,6 +58,8 @@ const BookingDetails = () => {
             alert('Please select both date and time.');
         }
     };
+
+    const currentDateTime = new Date();
 
     return (
         <View style={styles.container}>
@@ -69,9 +71,10 @@ const BookingDetails = () => {
             </TouchableOpacity>
             {showDatePicker && (
                 <DateTimePicker
-                    value={date || new Date()}
+                    value={date || currentDateTime}
                     mode="date"
                     display="default"
+                    minimumDate={currentDateTime}
                     onChange={onDateChange}
                 />
             )}
@@ -82,9 +85,10 @@ const BookingDetails = () => {
             </TouchableOpacity>
             {showTimePicker && (
                 <DateTimePicker
-                    value={time || new Date()}
+                    value={time || currentDateTime}
                     mode="time"
                     display="default"
+                    minimumDate={currentDateTime}
                     onChange={onTimeChange}
                 />
             )}
@@ -107,7 +111,7 @@ const styles = StyleSheet.create({
     },
     header: {
         fontSize: 24,
-        fontFamily: 'Poppins-SemiBold', 
+        fontFamily: 'Poppins-SemiBold',
         marginBottom: 20,
     },
     picker: {
