@@ -30,7 +30,14 @@ const Schedule: React.FC<ScheduleProps> = ({ refreshTrigger }) => {
 
         const newAgenda: AgendaSchedule = {};
 
-        events.forEach(event => {
+        // Convert the current date to Singapore timezone
+        const options: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Singapore', year: 'numeric', month: '2-digit', day: '2-digit' };
+        const currentDate = new Date().toLocaleDateString('en-CA', options);
+
+        // Filter events that are on or after the current date
+        const validEvents = events.filter(event => event.day >= currentDate);
+
+        validEvents.forEach(event => {
           if (!newAgenda[event.day]) {
             newAgenda[event.day] = [];
           }

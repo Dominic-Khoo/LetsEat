@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { ref, onValue, remove, get, push, set } from 'firebase/database';
+import { ref, onValue, remove, get, push, set, update } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
 
 interface Request {
@@ -106,6 +106,70 @@ const IncomingOpenJio: React.FC<IncomingOpenJioProps> = ({ onRequestUpdate }) =>
                 const senderEventsRef = ref(FIREBASE_DB, `users/${requesterUid}/events`);
                 const newSenderEventRef = push(senderEventsRef);
                 await set(newSenderEventRef, newSenderEvent);
+            }
+
+            // Update streaks
+            const streaksRef = ref(FIREBASE_DB, `users/${currentUserUid}/streaks/${requesterUid}`);
+            const streakSnapshot = await get(streaksRef);
+            const streakData = streakSnapshot.val();
+
+            if (streakData) {
+                const lastInteractionDate = new Date(streakData.lastInteraction);
+                const today = new Date(currentDate);
+
+                // Check if last interaction was on the same day
+                const sameDayInteraction = lastInteractionDate.toLocaleDateString('en-CA', options) === currentDate;
+
+                if (!sameDayInteraction) {
+                    // Increment streak
+                    await update(streaksRef, {
+                        count: streakData.count + 1,
+                        lastInteraction: currentDate,
+                    });
+                } else {
+                    // Update last interaction date without incrementing streak
+                    await update(streaksRef, {
+                        lastInteraction: currentDate,
+                    });
+                }
+            } else {
+                // Create a new streak
+                await set(streaksRef, {
+                    count: 1,
+                    lastInteraction: currentDate,
+                });
+            }
+
+            // Also update the requester's streak with the current user
+            const requesterStreaksRef = ref(FIREBASE_DB, `users/${requesterUid}/streaks/${currentUserUid}`);
+            const requesterStreakSnapshot = await get(requesterStreaksRef);
+            const requesterStreakData = requesterStreakSnapshot.val();
+
+            if (requesterStreakData) {
+                const lastInteractionDate = new Date(requesterStreakData.lastInteraction);
+                const today = new Date(currentDate);
+
+                // Check if last interaction was on the same day
+                const sameDayInteraction = lastInteractionDate.toLocaleDateString('en-CA', options) === currentDate;
+
+                if (!sameDayInteraction) {
+                    // Increment streak
+                    await update(requesterStreaksRef, {
+                        count: requesterStreakData.count + 1,
+                        lastInteraction: currentDate,
+                    });
+                } else {
+                    // Update last interaction date without incrementing streak
+                    await update(requesterStreaksRef, {
+                        lastInteraction: currentDate,
+                    });
+                }
+            } else {
+                // Create a new streak
+                await set(requesterStreaksRef, {
+                    count: 1,
+                    lastInteraction: currentDate,
+                });
             }
 
             // Remove all requests from the accepted requester

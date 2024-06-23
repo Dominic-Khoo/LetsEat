@@ -6,6 +6,7 @@ import { getAuth } from "firebase/auth";
 import { ref, onValue } from "firebase/database";
 import { FIREBASE_DB } from "../../../firebaseConfig";
 import Daily from "./components/Daily";
+import Streaks from "./components/Streaks";
 
 const Home = () => {
   const [username, setUsername] = useState("");
@@ -31,9 +32,9 @@ const Home = () => {
         <Text className="text-2xl text-left pl-3 font-pblack">hi, {username}!</Text>
       </View>
       <Daily />
-      <View className="pt-5 pl-2 pr-2 pb-12"></View>
+      <View className=" pl-2 pr-2 pb-5"></View>
 
-      <View className="flex-2 flex-row justify-space-between pt-10">
+      <View className="flex-2 flex-row justify-space-between">
         <View style={{ backgroundColor: "#F87171", flex: 2, padding: 30 }}>
           <TouchableOpacity
             onPress={() => router.push("(tabs)/request")}
@@ -45,6 +46,7 @@ const Home = () => {
         </View>
         <View style={{ backgroundColor: "black", flex: 2, padding: 30 }}></View>
       </View>
+      <Streaks />
     </View>
   );
 };
