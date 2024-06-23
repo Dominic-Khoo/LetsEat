@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Image, TouchableOpacity, Alert } from 'react-native';
 import { Agenda, AgendaEntry, AgendaSchedule } from 'react-native-calendars';
 import { getAuth } from 'firebase/auth';
-import { ref, remove, get, set } from 'firebase/database';
+import { ref, remove, get } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
 
 interface CustomAgendaEntry extends AgendaEntry {

@@ -4,7 +4,7 @@ import { GiftedChat, IMessage, Bubble, Day, InputToolbar, Composer, Send, InputT
 import { getAuth } from 'firebase/auth';
 import { ref, onValue, push, set, get } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import ChatHeader from './ChatHeader'; // Import the ChatHeader component
 
 const Chat = () => {

@@ -1,17 +1,15 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
-  Text,
   TextInput,
   Button,
   Image,
-  TouchableOpacity,
   StyleSheet,
 } from "react-native";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { FIREBASE_AUTH, storage } from "@/firebaseConfig";
 import { FIREBASE_DB } from "@/firebaseConfig";
-import { child, ref as ref2, get, set, update } from "firebase/database";
+import { ref as ref2, get, set, update } from "firebase/database";
 import { router } from "expo-router";
 import { updateProfile } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";

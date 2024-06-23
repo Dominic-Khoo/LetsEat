@@ -44,6 +44,16 @@ const IncomingFriendReq = () => {
         });
     }, []);
 
+    const incrementFriendsCount = async (userUid: string) => {
+        const userRef = ref(FIREBASE_DB, `users/${userUid}`);
+        const snapshot = await get(userRef);
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            const currentCount = userData.friendsCount || 0;
+            await update(userRef, { friendsCount: currentCount + 1 });
+        }
+    };
+
     const acceptFriendRequest = async (request: FriendRequest) => {
         const auth = getAuth();
         const currentUser = auth.currentUser;
@@ -68,6 +78,10 @@ const IncomingFriendReq = () => {
             // Add current user to requester's friends list
             const requesterFriendsRef = ref(FIREBASE_DB, `users/${request.requesterUid}/friendsList/${currentUser.uid}`);
             await update(requesterFriendsRef, { email: currentUser.email, username: currentUsername });
+
+            // Increment friendsCount for both users
+            await incrementFriendsCount(currentUser.uid);
+            await incrementFriendsCount(request.requesterUid);
 
             // Remove all requests from the requester
             const requestsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/incomingRequests`);

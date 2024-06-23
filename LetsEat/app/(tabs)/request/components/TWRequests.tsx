@@ -18,6 +18,8 @@ interface Event {
     height: number;
     icon: string;
     type: string;
+    uid: string;
+    sharedEventId: string;
 }
 
 interface IncomingTakeawayProps {
@@ -71,12 +73,16 @@ const IncomingTakeaway: React.FC<IncomingTakeawayProps> = ({ onRequestUpdate }) 
         const options: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Singapore', year: 'numeric', month: '2-digit', day: '2-digit' };
         const currentDate = new Date().toLocaleDateString('en-CA', options);
 
+        const sharedEventId = `${currentUserUid}_${requesterUid}_${Date.now()}`; // Generate a unique sharedEventId
+
         const newEvent: Event = {
             day: currentDate,
             name: `Takeaway from ${location} for ${requesterUsername}`,
             height: 50,
             icon: 'takeaway',
             type: 'Takeaway',
+            uid: requesterUid,
+            sharedEventId,
         };
         const newSenderEvent: Event = {
             day: currentDate,
@@ -84,6 +90,8 @@ const IncomingTakeaway: React.FC<IncomingTakeawayProps> = ({ onRequestUpdate }) 
             height: 50,
             icon: 'takeaway',
             type: 'Takeaway',
+            uid: currentUserUid,
+            sharedEventId,
         };
 
         try {

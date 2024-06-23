@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { ref, onValue, remove, get, push, set, update } from 'firebase/database';
+import { ref, onValue, remove, get, push, set } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
 
 interface Request {
@@ -15,12 +15,16 @@ interface Request {
 }
 
 interface Event {
+    id: string;
     day: string;
     time: string;
     name: string;
     height: number;
     icon: string;
     type: string;
+    uid: string;
+    sender: string;
+    sharedEventId: string;
 }
 
 const formatDate = (dateString: string, timeString: string) => {
@@ -64,42 +68,6 @@ const formatFirebaseDate = (dateString: string) => {
     const month = (`0${date.getMonth() + 1}`).slice(-2);
     const day = (`0${date.getDate()}`).slice(-2);
     return `${year}-${month}-${day}`;
-};
-
-const calculateMillisecondsUntil = (dateString: string, timeString: string): number => {
-    const date = new Date(`${dateString}T${timeString}`);
-    const now = new Date();
-    return date.getTime() - now.getTime();
-};
-
-const updateStreaks = async (currentUserUid: string, requesterUid: string) => {
-    const currentDate = new Date();
-    const options: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Singapore', year: 'numeric', month: '2-digit', day: '2-digit' };
-    const formattedCurrentDate = currentDate.toLocaleDateString('en-CA', options);
-
-    const streaksRef = ref(FIREBASE_DB, `users/${currentUserUid}/streaks/${requesterUid}`);
-    const streaksSnapshot = await get(streaksRef);
-    const streakData = streaksSnapshot.val();
-
-    if (streakData) {
-        const lastInteractionDate = new Date(streakData.lastInteraction);
-        const timeDifference = currentDate.getTime() - lastInteractionDate.getTime();
-        const daysDifference = timeDifference / (1000 * 3600 * 24);
-
-        if (daysDifference > 1) {
-            streakData.count = 1;
-        } else if (lastInteractionDate.toLocaleDateString('en-CA', options) !== formattedCurrentDate) {
-            streakData.count += 1;
-        }
-
-        streakData.lastInteraction = formattedCurrentDate;
-        await set(streaksRef, streakData);
-    } else {
-        await set(streaksRef, {
-            count: 1,
-            lastInteraction: formattedCurrentDate,
-        });
-    }
 };
 
 interface IncomingBookingsProps {
@@ -161,49 +129,43 @@ const IncomingBookings: React.FC<IncomingBookingsProps> = ({ onRequestUpdate }) 
         const firebaseDate = formatFirebaseDate(date);
         const formattedTime = formatTime(time);
 
+        const sharedEventId = `${requesterUid}_${currentUserUid}_${firebaseDate}_${formattedTime}`;
+
         const newEvent: Event = {
+            id: '',
             day: firebaseDate,
             time: formattedTime,
             name: `Booking with ${requesterUsername}`,
             height: 50,
             icon: 'reserved',
             type: 'Booking',
+            uid: requesterUid,
+            sender: currentUserUid,
+            sharedEventId,
         };
         const newSenderEvent: Event = {
+            id: '',
             day: firebaseDate,
             time: formattedTime,
             name: `Booking with ${currentUsername}`,
             height: 50,
             icon: 'reserved',
             type: 'Booking',
+            uid: currentUserUid,
+            sender: currentUserUid,
+            sharedEventId,
         };
 
         try {
             const userEventsRef = ref(FIREBASE_DB, `users/${currentUserUid}/events`);
-            const userEventsSnapshot = await get(userEventsRef);
-            const userEvents: Event[] = userEventsSnapshot.val() ? Object.values(userEventsSnapshot.val()) : [];
+            const newUserEventRef = push(userEventsRef);
+            newEvent.id = newUserEventRef.key!;
+            await set(newUserEventRef, newEvent);
 
-            const eventExists = userEvents.some(event =>
-                event.day === newEvent.day &&
-                event.time === newEvent.time &&
-                event.name === newEvent.name
-            );
-
-            if (!eventExists) {
-                const newUserEventRef = push(userEventsRef);
-                await set(newUserEventRef, newEvent);
-
-                const senderEventsRef = ref(FIREBASE_DB, `users/${requesterUid}/events`);
-                const newSenderEventRef = push(senderEventsRef);
-                await set(newSenderEventRef, newSenderEvent);
-
-                // Schedule streak update
-                const millisecondsUntilEvent = calculateMillisecondsUntil(date, time);
-                setTimeout(async () => {
-                    await updateStreaks(currentUserUid, requesterUid);
-                    await updateStreaks(requesterUid, currentUserUid);
-                }, millisecondsUntilEvent);
-            }
+            const senderEventsRef = ref(FIREBASE_DB, `users/${requesterUid}/events`);
+            const newSenderEventRef = push(senderEventsRef);
+            newSenderEvent.id = newSenderEventRef.key!;
+            await set(newSenderEventRef, newSenderEvent);
 
             // Remove all identical booking requests (same date, time, and person)
             const requestsRef = ref(FIREBASE_DB, `users/${currentUserUid}/bookingRequests`);

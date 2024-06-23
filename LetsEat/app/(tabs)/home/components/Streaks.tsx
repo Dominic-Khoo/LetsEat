@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { ref, onValue, get, set } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
@@ -8,10 +8,13 @@ interface Streak {
   friendUsername: string;
   count: number;
   lastInteraction: string;
+  friendUid: string;
 }
 
 const Streaks = () => {
   const [streaks, setStreaks] = useState<Streak[]>([]);
+  const [selectedStreak, setSelectedStreak] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState<{ days: number, hours: number } | null>(null);
 
   useEffect(() => {
     const fetchStreaks = async () => {
@@ -47,6 +50,7 @@ const Streaks = () => {
               friendUsername: friendData.username,
               count: data[key].count,
               lastInteraction: data[key].lastInteraction,
+              friendUid: key,
             };
           }));
 
@@ -60,16 +64,34 @@ const Streaks = () => {
     fetchStreaks();
   }, []);
 
+  const handleStreakPress = (friendUid: string, lastInteraction: string) => {
+    if (selectedStreak === friendUid) {
+      setSelectedStreak(null);
+      setTimeLeft(null);
+    } else {
+      setSelectedStreak(friendUid);
+      const lastInteractionDate = new Date(lastInteraction);
+      const currentDate = new Date();
+      const timeDifference = 7 * 24 * 3600 * 1000 - (currentDate.getTime() - lastInteractionDate.getTime());
+      const daysLeft = Math.floor(timeDifference / (1000 * 3600 * 24));
+      const hoursLeft = Math.floor((timeDifference % (1000 * 3600 * 24)) / (1000 * 3600));
+      setTimeLeft({ days: daysLeft, hours: hoursLeft });
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Streaks</Text>
       <ScrollView style={styles.scrollView}>
         {streaks.length > 0 ? (
           streaks.map((streak, index) => (
-            <View key={index} style={styles.streakItem}>
+            <TouchableOpacity key={index} style={styles.streakItem} onPress={() => handleStreakPress(streak.friendUid, streak.lastInteraction)}>
               <Text style={styles.friendUsername}>{streak.friendUsername}</Text>
               <Text style={styles.streakCount}>{streak.count}</Text>
-            </View>
+              {selectedStreak === streak.friendUid && timeLeft && (
+                <Text style={styles.timeLeftText}>{`${timeLeft.days} days, ${timeLeft.hours} hours left`}</Text>
+              )}
+            </TouchableOpacity>
           ))
         ) : (
           <Text style={styles.noStreaksText}>No streaks available.</Text>
@@ -81,8 +103,7 @@ const Streaks = () => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 10,
-    padding: 10,
+    padding: 20,
   },
   header: {
     fontSize: 24,
@@ -103,6 +124,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   friendUsername: {
     fontSize: 16,
@@ -116,6 +138,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Poppins-Regular',
     textAlign: 'center',
+  },
+  timeLeftText: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+    color: 'gray',
+    marginTop: 5,
   },
 });
 
