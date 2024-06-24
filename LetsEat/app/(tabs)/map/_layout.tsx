@@ -10,6 +10,10 @@ const MapLayout = () => {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="components/ReviewScreen"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 };
