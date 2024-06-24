@@ -1,0 +1,165 @@
+[
+    {
+      "id": 1,
+      "name": "Deck",
+      "description": "Arts Canteen",
+      "address": "Computing Drive, NUS School of Computing",
+      "openingHours": {
+        "sunday": "Closed",
+        "monday": "8:00 AM - 7:00 PM",
+        "tuesday": "8:00 AM - 7:00 PM",
+        "wednesday": "8:00 AM - 7:00 PM",
+        "thursday": "8:00 AM - 7:00 PM",
+        "friday": "8:00 AM - 7:00 PM",
+        "saturday": "Closed"
+      },
+      "coordinate": { "latitude": 1.29454, "longitude": 103.77258 },
+      "imageTab": "deck.png",
+      "imagePopup": "deckoutside.jpeg"
+    },
+    {
+      "id": 2,
+      "name": "Makan Boleh",
+      "description": "Restaurant/Cafe",
+      "address": "411 Research Link, #01-03 NUS Com3 Building, Singapore 119391",
+      "openingHours": {
+        "sunday": "Closed",
+        "monday": "8:00 AM - 7:00 PM",
+        "tuesday": "8:00 AM - 7:00 PM",
+        "wednesday": "8:00 AM - 7:00 PM",
+        "thursday": "8:00 AM - 7:00 PM",
+        "friday": "8:00 AM - 7:00 PM",
+        "saturday": "8:00 AM - 2:00 PM"
+      },
+      "coordinate": { "latitude": 1.29460, "longitude": 103.77415},
+      "imageTab": "mbinside.jpeg",
+      "imagePopup": "mbinside2.jpeg"
+    },
+    {
+      "id": 3,
+      "name": "The Spread",
+      "description": "Cafe",
+      "address": "15 Kent Ridge Dr, #01-03, Singapore 119245",
+      "openingHours": {
+          "sunday": "Closed",
+          "monday": "8:00 AM - 6:30 PM",
+          "tuesday": "8:00 AM - 7:00 PM",
+          "wednesday": "8:00 AM - 7:00 PM",
+          "thursday": "8:00 AM - 7:00 PM",
+          "friday": "8:00 AM - 3:00 PM",
+          "saturday": "8:00 AM - 3:00 PM"
+        },
+      "coordinate": { "latitude": 1.29255, "longitude": 103.77448},
+      "imageTab": "spread.jpeg",
+      "imagePopup": "spreadoutside.jpeg"
+    },
+    {
+      "id": 4,
+      "name": "TOMORO COFFEE",
+      "description": "Cafe",
+      "address": "1 Hon Sui Sen Dr Level 2, NUS, Hon Sui Sen Memorial Library, 117588",
+      "openingHours": {
+        "sunday": "Closed",
+        "monday": "9:00 AM - 5:00 PM",
+        "tuesday": "9:00 AM - 5:00 PM",
+        "wednesday": "9:00 AM - 5:00 PM",
+        "thursday": "9:00 AM - 5:00 PM",
+        "friday": "9:00 AM - 5:00 PM",
+        "saturday": "9:00 AM - 5:00 PM"
+      },
+      "coordinate": { "latitude": 1.29295, "longitude": 103.77457},
+      "imageTab": "tomoro.jpeg",
+      "imagePopup": "tomoro-drinks.jpeg"
+    },
+    {
+        "id": 5,
+        "name": "Reedz Cafe",
+        "description": "Cafe",
+        "address": "National University of Singapore, Shaw Foundation Alumni House, 11 Kent Ridge Dr, #119244 1st Floor",
+        "openingHours": {
+          "sunday": "Closed",
+          "monday": "9:00 AM - 7:30 PM",
+          "tuesday": "9:00 AM - 7:30 PM",
+          "wednesday": "9:00 AM - 7:30 PM",
+          "thursday": "9:00 AM - 7:30 PM",
+          "friday": "9:00 AM - 7:30 PM",
+          "saturday": "Closed"
+        },
+        "coordinate": { "latitude": 1.29281, "longitude": 103.77354},
+        "imageTab": "reedzfood.jpeg",
+        "imagePopup": "reedz.jpeg"
+      },
+      {
+        "id": 6,
+        "name": "The Terrace",
+        "description": "Computing Canteen",
+        "address": "11 Research Link, Singapore 119391",
+        "openingHours": {
+          "sunday": "Closed",
+          "monday": "8:00 AM - 6:00 PM",
+          "tuesday": "8:00 AM - 6:00 PM",
+          "wednesday": "8:00 AM - 6:00 PM",
+          "thursday": "8:00 AM - 6:00 PM",
+          "friday": "8:00 AM - 6:00 PM",
+          "saturday": "8:00 AM - 6:00 PM"
+        },
+        "coordinate": { "latitude": 1.29423, "longitude": 103.77427},
+        "imageTab": "terrace.png",
+        "imagePopup": "terraceoutside.jpeg"
+      },
+      {
+        "id": 7,
+        "name": "PGP Canteen",
+        "description": "Canteen",
+        "address": "27 Prince George's Pk, Singapore 118425",
+        "openingHours": {
+          "sunday": "Closed",
+          "monday": "8:00 AM - 7:30 PM",
+          "tuesday": "8:00 AM - 7:30 PM",
+          "wednesday": "8:00 AM - 7:30 PM",
+          "thursday": "8:00 AM - 7:30 PM",
+          "friday": "8:00 AM - 7:30 PM",
+          "saturday": "9:00 AM - 2:00 PM"
+        },
+        "coordinate": { "latitude": 1.29087, "longitude": 103.78059},
+        "imageTab": "pgpfood.jpeg",
+        "imagePopup": "pgp.jpeg"
+      },
+      {
+        "id": 8,
+        "name": "Frontier",
+        "description": "Science Canteen",
+        "address": "12 Science Drive 2, Singapore 117549",
+        "openingHours": {
+          "sunday": "Closed",
+          "monday": "7:00 AM - 7:00 PM",
+          "tuesday": "7:00 AM - 7:00 PM",
+          "wednesday": "7:00 AM - 7:00 PM",
+          "thursday": "7:00 AM - 7:00 PM",
+          "friday": "7:00 AM - 7:00 PM",
+          "saturday": "7:00 AM - 2:00 PM"
+        },
+        "coordinate": { "latitude": 1.29642, "longitude": 103.78038},
+        "imageTab": "frontierinside.jpeg",
+        "imagePopup": "frontier.png"
+      },
+      {
+        "id": 9,
+        "name": "Techno Edge",
+        "description": "Engineering Canteen",
+        "address": "2 Engineering Drive 4, Singapore 117584",
+        "openingHours": {
+          "sunday": "Closed",
+          "monday": "7:30 AM - 8:00 PM",
+          "tuesday": "7:30 AM - 8:00 PM",
+          "wednesday": "7:30 AM - 8:00 PM",
+          "thursday": "7:30 AM - 8:00 PM",
+          "friday": "7:30 AM - 8:00 PM",
+          "saturday": "Closed"
+        },
+        "coordinate": { "latitude": 1.29794, "longitude": 103.77167},
+        "imageTab": "technoinside.jpeg",
+        "imagePopup": "techno.jpeg"
+      }
+  ]
+  

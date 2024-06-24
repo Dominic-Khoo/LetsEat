@@ -19,6 +19,7 @@ const BookingDetails = () => {
         const currentDate = selectedDate || date;
         setShowDatePicker(Platform.OS === 'ios');
         setDate(currentDate);
+        setTime(undefined); // Reset time when date changes
     };
 
     const onTimeChange = (event: any, selectedTime?: Date) => {
@@ -88,7 +89,7 @@ const BookingDetails = () => {
                     value={time || currentDateTime}
                     mode="time"
                     display="default"
-                    minimumDate={currentDateTime}
+                    minimumDate={date && date.toDateString() === currentDateTime.toDateString() ? currentDateTime : undefined}
                     onChange={onTimeChange}
                 />
             )}
