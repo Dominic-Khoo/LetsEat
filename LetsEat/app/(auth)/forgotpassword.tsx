@@ -1,4 +1,3 @@
-// ForgetPasswordScreen.js
 import React, { useState } from "react";
 import { View, TextInput, Button, Text, StyleSheet, Alert } from "react-native";
 import { FIREBASE_AUTH } from "../../firebaseConfig";

@@ -1,9 +1,7 @@
-import { Alert, StyleSheet, Text, View } from "react-native";
-import { StatusBar } from "expo-status-bar";
 import { User, onAuthStateChanged } from "firebase/auth";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FIREBASE_AUTH } from "../firebaseConfig";
-import { Slot, router } from "expo-router";
+import {  router } from "expo-router";
 import { useFonts } from "expo-font";
 
 export default function App() {

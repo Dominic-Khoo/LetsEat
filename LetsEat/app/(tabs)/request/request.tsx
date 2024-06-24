@@ -1,4 +1,3 @@
-// Request.js
 import { Text, View } from 'react-native';
 import React, { useState } from 'react';
 import RequestButton from "./components/RequestButton";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { ref, onValue, remove, update, get } from 'firebase/database';
+import { ref, get } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
 import IncomingOpenJio from './OJRequests';
 import IncomingBookings from './BKRequests';

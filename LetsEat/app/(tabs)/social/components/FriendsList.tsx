@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet, ScrollView, TouchableOpacity, Text, Image, Alert } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { ref, onValue, remove } from 'firebase/database';
+import { ref, onValue, remove, update, get } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
 import { useRouter } from 'expo-router';
 
@@ -105,6 +105,24 @@ const FriendsList = () => {
                 // Remove current user from friend's friend list
                 const friendFriendsRef = ref(FIREBASE_DB, `users/${selectedFriend.uid}/friendsList/${currentUser.uid}`);
                 await remove(friendFriendsRef);
+
+                // Update friendsCount for current user
+                const currentUserRef = ref(FIREBASE_DB, `users/${currentUser.uid}`);
+                const currentUserSnapshot = await get(currentUserRef);
+                const currentUserData = currentUserSnapshot.val();
+                if (currentUserData) {
+                    const updatedFriendsCount = (currentUserData.friendsCount || 0) - 1;
+                    await update(currentUserRef, { friendsCount: updatedFriendsCount });
+                }
+
+                // Update friendsCount for selected friend
+                const selectedFriendRef = ref(FIREBASE_DB, `users/${selectedFriend.uid}`);
+                const selectedFriendSnapshot = await get(selectedFriendRef);
+                const selectedFriendData = selectedFriendSnapshot.val();
+                if (selectedFriendData) {
+                    const updatedFriendsCount = (selectedFriendData.friendsCount || 0) - 1;
+                    await update(selectedFriendRef, { friendsCount: updatedFriendsCount });
+                }
 
                 console.log('Friend removed:', selectedFriend);
             } catch (error) {

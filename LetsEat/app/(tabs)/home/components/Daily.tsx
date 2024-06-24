@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { ref, onValue, off } from 'firebase/database';
+import { ref, onValue, off, set, update, get, remove } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
 
 interface Event {
@@ -12,10 +12,16 @@ interface Event {
   icon: string;
   type: string;
   time?: string;
+  uid: string;
+  sender: string;
+  confirmedByUser?: boolean;
+  confirmedByPartner?: boolean;
+  sharedEventId?: string;
 }
 
 const Daily = () => {
   const [events, setEvents] = useState<Event[]>([]);
+  const [showConfirmButtons, setShowConfirmButtons] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     const fetchEvents = () => {
@@ -108,19 +114,138 @@ const Daily = () => {
     }
   };
 
+  const handleConfirm = async (event: Event) => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    const eventRef = ref(FIREBASE_DB, `users/${currentUser.uid}/events/${event.id}`);
+    await update(eventRef, { confirmedByUser: true });
+
+    const partnerUid = event.uid; // Assuming the name format is "Event with User"
+    const partnerEventRef = ref(FIREBASE_DB, `users/${partnerUid}/events`);
+    const partnerEventSnapshot = await get(partnerEventRef);
+    const partnerEvents = partnerEventSnapshot.val();
+    const partnerEventKey = Object.keys(partnerEvents).find(key => partnerEvents[key].sharedEventId === event.sharedEventId);
+    const partnerEvent = partnerEventKey ? partnerEvents[partnerEventKey] : null;
+
+    if (partnerEvent && partnerEvent.confirmedByUser) {
+      // Both users have confirmed
+      await updateStreaks(currentUser.uid, partnerUid);
+      await updateStreaks(partnerUid, currentUser.uid);
+      
+      // Increment counts for both users
+      if (event.type === 'Open Jio' || event.type === 'Booking') {
+        await incrementMealsCount(currentUser.uid);
+        await incrementMealsCount(partnerUid);
+        await incrementPlannerCount(event.sender);
+      } else if (event.type === 'Takeaway') {
+        await incrementTakeawayCount(currentUser.uid);
+        await incrementTakeawayCount(partnerUid);
+      }
+
+      // Remove the event
+      await remove(eventRef);
+      await remove(ref(FIREBASE_DB, `users/${partnerUid}/events/${partnerEventKey}`));
+    } else if (partnerEventKey) {
+      await update(ref(FIREBASE_DB, `users/${partnerUid}/events/${partnerEventKey}`), { confirmedByPartner: true });
+      await update(eventRef, { confirmedByUser: true });
+    }
+  };
+
+  const updateStreaks = async (currentUserUid: string, partnerUid: string) => {
+    const options: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Singapore', year: 'numeric', month: '2-digit', day: '2-digit' };
+    const currentDate = new Date().toLocaleDateString('en-CA', options);
+    
+    const streaksRef = ref(FIREBASE_DB, `users/${currentUserUid}/streaks/${partnerUid}`);
+    const streakSnapshot = await get(streaksRef);
+    const streakData = streakSnapshot.val();
+
+    if (streakData) {
+      const lastInteractionDate = new Date(streakData.lastInteraction);
+      const currentInteractionDate = new Date(currentDate);
+      const lastInteractionDay = lastInteractionDate.toLocaleDateString('en-CA', options);
+      const currentDay = currentInteractionDate.toLocaleDateString('en-CA', options);
+
+      if (lastInteractionDay === currentDay) {
+        // Interaction happened on the same day, don't increment the streak
+        return;
+      } else {
+        // Increment the streak
+        streakData.count += 1;
+        streakData.lastInteraction = currentDate;
+        await set(streaksRef, streakData);
+      }
+    } else {
+      await set(streaksRef, {
+        count: 1,
+        lastInteraction: currentDate,
+      });
+    }
+  };
+
+  const incrementMealsCount = async (userUid: string) => {
+    const userRef = ref(FIREBASE_DB, `users/${userUid}`);
+    const userSnapshot = await get(userRef);
+    const userData = userSnapshot.val();
+
+    if (userData) {
+      const updatedMealsCount = (userData.mealsCount || 0) + 1;
+      await update(userRef, { mealsCount: updatedMealsCount });
+    }
+  };
+
+  const incrementPlannerCount = async (userUid: string) => {
+    const userRef = ref(FIREBASE_DB, `users/${userUid}`);
+    const userSnapshot = await get(userRef);
+    const userData = userSnapshot.val();
+
+    if (userData) {
+      const updatedPlannerCount = (userData.plannerCount || 0) + 1;
+      await update(userRef, { plannerCount: updatedPlannerCount });
+    }
+  };
+
+  const incrementTakeawayCount = async (userUid: string) => {
+    const userRef = ref(FIREBASE_DB, `users/${userUid}`);
+    const userSnapshot = await get(userRef);
+    const userData = userSnapshot.val();
+
+    if (userData) {
+      const updatedTakeawayCount = (userData.takeawayCount || 0) + 1;
+      await update(userRef, { takeawayCount: updatedTakeawayCount });
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Today's Events</Text>
       <ScrollView style={styles.scrollView}>
         {events.length > 0 ? (
           events.map(event => (
-            <View key={event.id} style={styles.eventItem}>
+            <TouchableOpacity
+              key={event.id}
+              style={styles.eventItem}
+              onPress={() => {
+                if (!event.confirmedByUser) {
+                  setShowConfirmButtons(prev => ({ ...prev, [event.id]: !prev[event.id] }));
+                }
+              }}
+            >
               <Image source={getIcon(event.type)} style={styles.eventIcon} />
-              <View>
+              <View style={styles.eventInfo}>
                 <Text style={styles.eventType}>{event.type}</Text>
                 <Text style={styles.eventText}>{formatEventText(event)}</Text>
+                {event.confirmedByUser && !event.confirmedByPartner && (
+                  <Text style={styles.awaitingConfirmationText}>Awaiting Confirmation</Text>
+                )}
               </View>
-            </View>
+              {showConfirmButtons[event.id] && !event.confirmedByUser && (
+                <TouchableOpacity style={styles.confirmButton} onPress={() => handleConfirm(event)}>
+                  <Text style={styles.confirmText}>Confirm</Text>
+                </TouchableOpacity>
+              )}
+            </TouchableOpacity>
           ))
         ) : (
           <Text style={styles.noEventsText}>No events for today.</Text>
@@ -132,8 +257,7 @@ const Daily = () => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 10,
-    padding: 10,
+    padding: 20,
   },
   header: {
     fontSize: 24,
@@ -160,6 +284,9 @@ const styles = StyleSheet.create({
     height: 30,
     marginRight: 10,
   },
+  eventInfo: {
+    flex: 1,
+  },
   eventType: {
     fontSize: 16,
     fontFamily: 'Poppins-SemiBold',
@@ -168,10 +295,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Poppins-Regular',
   },
-  eventTime: {
+  confirmButton: {
+    padding: 5,
+    backgroundColor: 'brown',
+    borderRadius: 5,
+  },
+  confirmText: {
     fontSize: 14,
     fontFamily: 'Poppins-Regular',
-    color: 'gray',
+    color: 'white',
+  },
+  awaitingConfirmationText: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+    color: 'orange',
   },
   noEventsText: {
     fontSize: 16,
