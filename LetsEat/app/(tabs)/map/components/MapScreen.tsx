@@ -1,6 +1,8 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { View, StyleSheet } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import eateriesData from '../../../../eateries.json';
+import imageMap from '../../../../imageMap';
 
 type DayOfWeek = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
 
@@ -23,45 +25,19 @@ type MapScreenProps = {
 };
 
 const MapScreen: React.FC<MapScreenProps> = ({ onSelectEatery }) => {
-  const eateries: Eatery[] = [
-    {
-      id: 1,
-      name: 'Deck',
-      description: 'Arts Canteen',
-      address: 'Computing Drive, NUS School of Computing',
-      openingHours: {
-        sunday: 'Closed',
-        monday: '8:00 AM - 7:00 PM',
-        tuesday: '8:00 AM - 7:00 PM',
-        wednesday: '8:00 AM - 7:00 PM',
-        thursday: '8:00 AM - 7:00 PM',
-        friday: '8:00 AM - 7:00 PM',
-        saturday: 'Closed',
-      },
-      coordinate: { latitude: 1.29454, longitude: 103.77258 },
-      imageTab: require("../../../../assets/images/deck.png"),
-      imagePopup: require("../../../../assets/images/deckoutside.jpeg")
-    },
-    {
-      id: 2,
-      name: 'Eatery 2',
-      description: 'Amazing dishes!',
-      address: '456 Taste Avenue',
-      openingHours: {
-        sunday: '9:00 AM - 11:00 PM',
-        monday: '9:00 AM - 11:00 PM',
-        tuesday: '9:00 AM - 11:00 PM',
-        wednesday: '9:00 AM - 11:00 PM',
-        thursday: '9:00 AM - 11:00 PM',
-        friday: '9:00 AM - 11:00 PM',
-        saturday: '9:00 AM - 11:00 PM',
-      },
-      coordinate: { latitude: 37.78825, longitude: -122.435 },
-      imageTab: require("../../../../assets/images/deck.png"),
-      imagePopup: require("../../../../assets/images/deckoutside.jpeg")
-    },
-    // Add more eateries as needed
-  ];
+    const [eateries, setEateries] = useState<Eatery[]>([]);
+
+    useEffect(() => {
+      const loadEateries = async () => {
+        const loadedEateries = eateriesData.map((eatery) => ({
+          ...eatery,
+          imageTab: imageMap[eatery.imageTab],
+          imagePopup: imageMap[eatery.imagePopup],
+        }));
+        setEateries(loadedEateries);
+      };
+      loadEateries();
+    }, []);
 
   return (
     <View style={styles.container}>

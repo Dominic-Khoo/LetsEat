@@ -15,6 +15,8 @@ type Eatery = {
       latitude: number;
       longitude: number;
     };
+    imageTab: any;
+    imagePopup: any;
   };
 
 const Map = () => {

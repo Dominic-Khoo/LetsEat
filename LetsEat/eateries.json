@@ -1,0 +1,75 @@
+[
+    {
+      "id": 1,
+      "name": "Deck",
+      "description": "Arts Canteen",
+      "address": "Computing Drive, NUS School of Computing",
+      "openingHours": {
+        "sunday": "Closed",
+        "monday": "8:00 AM - 7:00 PM",
+        "tuesday": "8:00 AM - 7:00 PM",
+        "wednesday": "8:00 AM - 7:00 PM",
+        "thursday": "8:00 AM - 7:00 PM",
+        "friday": "8:00 AM - 7:00 PM",
+        "saturday": "Closed"
+      },
+      "coordinate": { "latitude": 1.29454, "longitude": 103.77258 },
+      "imageTab": "deck.png",
+      "imagePopup": "deckoutside.jpeg"
+    },
+    {
+      "id": 2,
+      "name": "Makan Boleh",
+      "description": "Restaurant/Cafe",
+      "address": "411 Research Link, #01-03 NUS Com3 Building, Singapore 119391",
+      "openingHours": {
+        "sunday": "Closed",
+        "monday": "8:00 AM - 7:00 PM",
+        "tuesday": "8:00 AM - 7:00 PM",
+        "wednesday": "8:00 AM - 7:00 PM",
+        "thursday": "8:00 AM - 7:00 PM",
+        "friday": "8:00 AM - 7:00 PM",
+        "saturday": "8:00 AM - 2:00 PM"
+      },
+      "coordinate": { "latitude": 1.29460, "longitude": 103.77415},
+      "imageTab": "mbinside.jpeg",
+      "imagePopup": "mbinside2.jpeg"
+    },
+    {
+      "id": 3,
+      "name": "The Spread",
+      "description": "Cafe",
+      "address": "15 Kent Ridge Dr, #01-03, Singapore 119245",
+      "openingHours": {
+          "sunday": "Closed",
+          "monday": "8:00 AM - 6:30 PM",
+          "tuesday": "8:00 AM - 7:00 PM",
+          "wednesday": "8:00 AM - 7:00 PM",
+          "thursday": "8:00 AM - 7:00 PM",
+          "friday": "8:00 AM - 3:00 PM",
+          "saturday": "8:00 AM - 3:00 PM"
+        },
+      "coordinate": { "latitude": 1.29255, "longitude": 103.77448},
+      "imageTab": "spread.jpeg",
+      "imagePopup": "spreadoutside.jpeg"
+    },
+    {
+      "id": 4,
+      "name": "TOMORO COFFEE",
+      "description": "Cafe",
+      "address": "1 Hon Sui Sen Dr Level 2, NUS, Hon Sui Sen Memorial Library, 117588",
+      "openingHours": {
+        "sunday": "Closed",
+        "monday": "8:00 AM - 5:00 PM",
+        "tuesday": "8:00 AM - 5:00 PM",
+        "wednesday": "8:00 AM - 5:00 PM",
+        "thursday": "8:00 AM - 5:00 PM",
+        "friday": "8:00 AM - 5:00 PM",
+        "saturday": "8:00 AM - 5:00 PM"
+      },
+      "coordinate": { "latitude": 1.29295, "longitude": 103.77457},
+      "imageTab": "tomoro.jpeg",
+      "imagePopup": "tomoro-drinks.jpeg"
+    }
+  ]
+  

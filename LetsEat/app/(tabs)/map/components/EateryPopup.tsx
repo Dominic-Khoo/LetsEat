@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons'; // For star ratings
 
@@ -30,7 +30,7 @@ const EateryPopup: React.FC<EateryPopupProps> = ({ eatery, onClose }) => {
 
   const averageRating = 4.5; // Example average rating
 
-  const parseTime = (timeString: string) => {
+  const parseTime = (timeString: string): Date => {
     const [time, modifier] = timeString.split(' ');
     let [hours, minutes] = time.split(':').map(Number);
 
@@ -40,14 +40,15 @@ const EateryPopup: React.FC<EateryPopupProps> = ({ eatery, onClose }) => {
       hours = 0;
     }
 
-    return { hours, minutes };
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date;
   };
 
   if (!eatery) return <Text style={styles.instructions}>Click on an eatery to see more details!</Text>;
 
   const currentTime = new Date();
-  const singaporeTimeOffset = 8 * 60 * 60 * 1000; // Singapore is UTC+8
-  const singaporeCurrentTime = new Date(currentTime.getTime() + singaporeTimeOffset);
+  const singaporeCurrentTime = new Date(currentTime.getTime());
 
   const dayOfWeek: DayOfWeek = singaporeCurrentTime.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as DayOfWeek;
   const openingHours = eatery.openingHours[dayOfWeek];
@@ -56,13 +57,11 @@ const EateryPopup: React.FC<EateryPopupProps> = ({ eatery, onClose }) => {
 
   if (openingHours && openingHours.toLowerCase() !== 'closed') {
     const [opening, closing] = openingHours.split(' - ');
-    const { hours: openingHoursParsed, minutes: openingMinutesParsed } = parseTime(opening);
-    const { hours: closingHoursParsed, minutes: closingMinutesParsed } = parseTime(closing);
-
-    const openingTime = new Date(singaporeCurrentTime.setHours(openingHoursParsed, openingMinutesParsed, 0, 0));
-    const closingTime = new Date(singaporeCurrentTime.setHours(closingHoursParsed, closingMinutesParsed, 0, 0));
+    const openingTime = parseTime(opening);
+    const closingTime = parseTime(closing);
 
     isOpen = singaporeCurrentTime >= openingTime && singaporeCurrentTime <= closingTime;
+    
   }
 
   return (
@@ -141,6 +140,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: '100%',
+    height: '35%',
     padding: 20,
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
@@ -154,7 +154,8 @@ const styles = StyleSheet.create({
   instructions: {
     fontSize: 16,
     textAlign: 'center',
-    fontFamily: 'Poppins',
+    fontFamily: 'Poppins-Bold',
+    padding: 20,
   },
   touchableContainer: {
     width: '100%',
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 150,
+    height: 200,
     borderRadius: 20,
     marginTop: 10,
   },
