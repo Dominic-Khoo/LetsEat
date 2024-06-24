@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons'; // For star ratings
+import { useRouter } from 'expo-router';
+import { getDatabase, ref, get } from 'firebase/database';
+import { getAuth } from 'firebase/auth';
 
 type DayOfWeek = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
 
@@ -27,8 +30,27 @@ const EateryPopup: React.FC<EateryPopupProps> = ({ eatery, onClose }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showOpeningHours, setShowOpeningHours] = useState(false);
   const [showReviews, setShowReviews] = useState(false);
+  const [averageRating, setAverageRating] = useState(0);
+  const router = useRouter();
+  const database = getDatabase();
 
-  const averageRating = 4.5; // Example average rating
+  useEffect(() => {
+    if (eatery) {
+      const reviewsRef = ref(database, `eateries/${eatery.id}/reviews`);
+      get(reviewsRef).then((snapshot) => {
+        if (snapshot.exists()) {
+          const reviews = snapshot.val();
+          const totalRatings = Object.values(reviews).map((review: any) => Number(review.rating));
+          const average = totalRatings.reduce((acc, rating) => acc + rating, 0) / totalRatings.length;
+          setAverageRating(parseFloat(average.toFixed(1)));
+        } else {
+          setAverageRating(0);
+        }
+      }).catch((error) => {
+        console.error("Error fetching reviews:", error);
+      });
+    }
+  }, [eatery, database]);
 
   const parseTime = (timeString: string): Date => {
     const [time, modifier] = timeString.split(' ');
@@ -61,8 +83,11 @@ const EateryPopup: React.FC<EateryPopupProps> = ({ eatery, onClose }) => {
     const closingTime = parseTime(closing);
 
     isOpen = singaporeCurrentTime >= openingTime && singaporeCurrentTime <= closingTime;
-    
   }
+
+  const handleLeaveReview = () => {
+    router.push({ pathname: './map/components/ReviewScreen', params: { eatery: JSON.stringify(eatery) } });
+  };
 
   return (
     <>
@@ -113,13 +138,14 @@ const EateryPopup: React.FC<EateryPopupProps> = ({ eatery, onClose }) => {
               <Image source={require('../../../../assets/icons/down-arrow.png')} style={styles.downArrow} />
             </View>
             {showReviews && (
-              <TouchableOpacity style={styles.leaveReviewButton} onPress={() => alert('Leave a Review')}>
+              <TouchableOpacity style={styles.leaveReviewButton} onPress={() => {setIsModalVisible(false);
+                                                                                handleLeaveReview();}}>
                 <Text style={styles.leaveReviewButtonText}>Leave a Review</Text>
               </TouchableOpacity>
             )}
           </TouchableOpacity>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/takeaway')}>
               <Text style={styles.buttonText}>Takeaway</Text>
             </TouchableOpacity>
           </View>
@@ -255,6 +281,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 5,
     fontFamily: 'Poppins',
+    marginTop: 5,
   },
   reviewHeader: {
     flexDirection: 'row',
