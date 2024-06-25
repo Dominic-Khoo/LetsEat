@@ -102,7 +102,12 @@ const Incoming: React.FC<IncomingProps> = ({ onRequestUpdate }) => {
                         style={[styles.tab, activeTab === tab ? styles.activeTab : null]}
                         onPress={() => handleTabPress(tab)}
                     >
-                        <Text style={styles.tabText}>{tab} ({uniqueRequestsCount[tab]})</Text>
+                        <Text style={styles.tabText}>{tab}</Text>
+                        {uniqueRequestsCount[tab] > 0 && (
+                            <View style={styles.notificationBadge}>
+                                <Text style={styles.badgeText}>{uniqueRequestsCount[tab]}</Text>
+                            </View>
+                        )}
                     </TouchableOpacity>
                 ))}
             </View>
@@ -130,6 +135,7 @@ const styles = StyleSheet.create({
     },
     tab: {
         paddingVertical: 5,
+        alignItems: 'center',
     },
     activeTab: {
         borderBottomWidth: 2,
@@ -139,32 +145,24 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontFamily: 'Poppins-SemiBold'
     },
+    notificationBadge: {
+        position: 'absolute',
+        top: -5,
+        right: -10,
+        backgroundColor: 'red',
+        borderRadius: 10,
+        width: 20,
+        height: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    badgeText: {
+        color: 'white',
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
     requestContainer: {
         flex: 1,
-    },
-    requestItem: {
-        padding: 20,
-        marginBottom: 10,
-        backgroundColor: '#f0f0f0',
-        borderRadius: 5,
-    },
-    buttonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
-    },
-    acceptButton: {
-        backgroundColor: '#4CAF50',
-        padding: 10,
-        borderRadius: 5,
-    },
-    declineButton: {
-        backgroundColor: '#F44336',
-        padding: 10,
-        borderRadius: 5,
-    },
-    buttonText: {
-        color: '#fff',
     },
 });
 

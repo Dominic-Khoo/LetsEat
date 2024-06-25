@@ -11,6 +11,7 @@ import React, { useEffect, useState } from "react";
 import { FIREBASE_AUTH, FIREBASE_DB } from "@/firebaseConfig";
 import { router } from "expo-router";
 import { onValue, ref } from "firebase/database";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Profile = () => {
   const [username, setUsername] = useState("");
@@ -70,7 +71,9 @@ const Profile = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.logoutButton}
-            onPress={() => FIREBASE_AUTH.signOut()}
+            onPress={() => {FIREBASE_AUTH.signOut();
+                            AsyncStorage.removeItem('modalShown');}
+            }
           >
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
