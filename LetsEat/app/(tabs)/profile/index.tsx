@@ -12,6 +12,7 @@ import { FIREBASE_AUTH, FIREBASE_DB } from "@/firebaseConfig";
 import { router } from "expo-router";
 import { onValue, ref } from "firebase/database";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { images } from "@/constants";
 
 const Profile = () => {
   const [username, setUsername] = useState("");
@@ -26,6 +27,9 @@ const Profile = () => {
       const userRef = ref(FIREBASE_DB, `users/${user.uid}`);
       onValue(userRef, (snapshot) => {
         const data = snapshot.val();
+        if (data && data.username) {
+          setUsername(data.username);
+        }
         if (data && data.bio) {
           setBio(data.bio);
         }
@@ -52,13 +56,14 @@ const Profile = () => {
         }}
         showsVerticalScrollIndicator={false}
       >
+        <View style={{ height: 30 }} />
         <Image
           style={styles.userImg}
-          source={user?.photoURL ? { uri: user.photoURL } : undefined}
+          source={user?.photoURL ? { uri: user.photoURL } : images.profile}
         />
 
-        <Text className="pt-5 text-2xl text-center  font-pblack">
-          {user?.displayName}
+        <Text className="pt-5 text-2xl text-center font-pblack">
+          {username}
         </Text>
 
         <Text className="pt-3 text-center font-pnormal">{bio}</Text>
@@ -71,9 +76,10 @@ const Profile = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.logoutButton}
-            onPress={() => {FIREBASE_AUTH.signOut();
-                            AsyncStorage.removeItem('modalShown');}
-            }
+            onPress={() => {
+              FIREBASE_AUTH.signOut();
+              AsyncStorage.removeItem("modalShown");
+            }}
           >
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
@@ -84,7 +90,9 @@ const Profile = () => {
             <Text style={styles.userInfoTitle}>Faculty</Text>
             <Text style={styles.userInfoSubTitle}>{faculty}</Text>
           </View>
+        </View>
 
+        <View style={styles.userInfoWrapper}>
           <View style={styles.userInfoItem}>
             <Text style={styles.userInfoTitle}>Campus Accomodation</Text>
             <Text style={styles.userInfoSubTitle}>{campusAccomodation}</Text>
@@ -110,8 +118,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF", // White background color for the container
   },
   userImg: {
-    height: 150,
-    width: 150,
+    height: 120,
+    width: 120,
     borderRadius: 75,
   },
 
@@ -139,21 +147,25 @@ const styles = StyleSheet.create({
   userInfoWrapper: {
     flexDirection: "row",
     justifyContent: "space-around",
-    width: "100%",
-    marginVertical: 20,
+    width: "80%",
+    borderRadius: 2,
+    margin: 10,
+    backgroundColor: "#ff6f69",
+    padding: 15,
   },
   userInfoItem: {
     justifyContent: "center",
   },
   userInfoTitle: {
-    fontSize: 15,
+    fontSize: 20,
+    color: "#fff",
     fontWeight: "bold",
-    marginBottom: 3,
+    marginBottom: 10,
     textAlign: "center",
   },
   userInfoSubTitle: {
-    fontSize: 10,
-    color: "#7D7D7D",
+    fontSize: 17,
+    color: "black",
     textAlign: "center",
   },
 });

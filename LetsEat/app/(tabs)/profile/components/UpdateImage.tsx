@@ -78,15 +78,26 @@ const UpdateImage = () => {
       }
     }
   }, [cameraStatus, handleLaunchCamera, requestCameraPermission]);
+
   // Get data of current user
   const user = FIREBASE_AUTH.currentUser;
+
+  const handleDeletePhoto = async () => {
+    if (user) {
+      await updateProfile(user, {
+        photoURL: "",
+      });
+      await router.back();
+    }
+  };
+
   // Set the profile data
   const submitData = async () => {
     try {
       let profilePictureURL = "";
 
       if (user) {
-        if (profilePicture) {
+        if (profilePicture != "") {
           const response = await fetch(profilePicture);
           const blob = await response.blob();
           const storageRef = ref(storage, `images/${user.uid}`);
@@ -101,6 +112,11 @@ const UpdateImage = () => {
             profilePicture: profilePictureURL,
           });
           console.log("Profile picture saved successfully");
+        } else {
+          console.log("Profile picture removed");
+          updateProfile(user, {
+            photoURL: "",
+          });
         }
       }
     } catch (error) {
@@ -143,6 +159,18 @@ const UpdateImage = () => {
               }}
             >
               <Text style={styles.textStyle}>Take photo</Text>
+            </TouchableOpacity>
+            <View style={{ height: 5 }} />
+            <View style={{ height: 5 }} />
+
+            <TouchableOpacity
+              style={[styles.button, styles.buttonClose]}
+              onPress={() => {
+                setModalVisible(!modalVisible);
+                handleDeletePhoto();
+              }}
+            >
+              <Text style={styles.textStyle}>Delete photo</Text>
             </TouchableOpacity>
             <View style={{ height: 5 }} />
 

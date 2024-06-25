@@ -12,25 +12,22 @@ import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { FIREBASE_AUTH, storage } from "@/firebaseConfig";
 import { FIREBASE_DB } from "@/firebaseConfig";
-import { ref as ref2, get, set, update } from "firebase/database";
+import { ref as ref2, get, set, update, onValue } from "firebase/database";
 import { router } from "expo-router";
 import { updateProfile } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
 import * as Linking from "expo-linking";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { images } from "@/constants";
 
 const EditProfile = () => {
-  const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [faculty, setFaculty] = useState("");
   const [facultyLabel, setFacultyLabel] = useState("");
   const [campusAccomodation, setCampusAccomodation] = useState("");
   const [campusAccomodationLabel, setCampusAccomodationLabel] = useState("");
   const [preferredCuisine, setPreferredCuisine] = useState<string[]>([]);
-  const [preferredCuisineLabel, setPreferredCuisineLabel] = useState<string[]>(
-    []
-  );
 
   // Label and value for the faculty dropdown
   const dataFaculty = [
@@ -93,21 +90,23 @@ const EditProfile = () => {
         const userRef = ref2(FIREBASE_DB, `users/${user.uid}`);
         const userSnapshot = await get(userRef);
         const userData = userSnapshot.val();
-
-        // Update the user profile
-        await updateProfile(user, {
-          displayName: username,
-        });
+        console.log(user.displayName);
 
         // Update the database with the new data, keeping the existing email
         await set(userRef, {
-          username: username || userData.username,
+          username: userData.username,
           email: userData.email,
-          bio: bio || userData.bio,
-          faculty: facultyLabel || userData.faculty,
+          profilePicture: user.photoURL,
+          bio: bio !== "" ? bio : userData.bio,
+          faculty: facultyLabel !== "" ? facultyLabel : userData.faculty,
           campusAccomodation:
-            campusAccomodationLabel || userData.campusAccomodation,
-          preferredCuisine: preferredCuisine || userData.preferredCuisine,
+            campusAccomodationLabel !== ""
+              ? campusAccomodationLabel
+              : userData.campusAccomodation,
+          preferredCuisine:
+            preferredCuisine.length > 0
+              ? preferredCuisine
+              : userData.preferredCuisine,
         });
 
         console.log("Profile data saved successfully");
@@ -118,10 +117,15 @@ const EditProfile = () => {
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: "#fff", paddingHorizontal: 20 }}
-    >
+    <View style={{ flex: 1, backgroundColor: "#fff", paddingHorizontal: 20 }}>
+      <Text className="text-l text-center font-semibold pt-2">
+        Edit Profile
+      </Text>
       <View style={{ alignItems: "center" }}>
+        <View style={{ height: 20 }} />
+        <Text className="p-2 text-xl text-center font-bold">
+          {user?.displayName}
+        </Text>
         <TouchableOpacity onPress={() => router.replace("./UpdateImage")}>
           <View
             style={{
@@ -133,7 +137,7 @@ const EditProfile = () => {
             }}
           >
             <ImageBackground
-              source={user?.photoURL ? { uri: user.photoURL } : undefined}
+              source={user?.photoURL ? { uri: user.photoURL } : images.profile}
               style={{ height: 100, width: 100 }}
               imageStyle={{ borderRadius: 15 }}
             >
@@ -161,17 +165,7 @@ const EditProfile = () => {
             </ImageBackground>
           </View>
         </TouchableOpacity>
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            placeholder={user?.displayName || "Username"}
-            placeholderTextColor="#888"
-            value={username}
-            onChangeText={setUsername}
-            style={styles.input}
-          />
-          <View style={styles.underline} />
-        </View>
+        <View style={{ height: 15 }} />
         <View style={styles.inputContainer}>
           <TextInput
             placeholder="Bio"
@@ -272,10 +266,11 @@ const EditProfile = () => {
           Save Profile
         </Text>
       </TouchableOpacity>
+
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Text style={{ fontSize: 13, color: "#66545e" }}>Back</Text>
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -295,7 +290,7 @@ const styles = StyleSheet.create({
   },
 
   inputContainer: {
-    width: "80%",
+    width: "100%",
     marginBottom: 20,
   },
   input: {
