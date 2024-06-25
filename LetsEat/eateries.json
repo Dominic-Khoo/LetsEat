@@ -160,6 +160,60 @@
         "coordinate": { "latitude": 1.29794, "longitude": 103.77167},
         "imageTab": "technoinside.jpeg",
         "imagePopup": "techno.jpeg"
-      }
+      },
+      {
+        "id": 10,
+        "name": "The Tea Party",
+        "description": "Cafe",
+        "address": "2 Sports Drive 1, #03-03, Singapore 117561",
+        "openingHours": {
+          "sunday": "Closed",
+          "monday": "10:30 AM - 10:00 PM",
+          "tuesday": "10:30 AM - 10:00 PM",
+          "wednesday": "10:30 AM - 10:00 PM",
+          "thursday": "10:30 AM - 10:00 PM",
+          "friday": "10:30 AM - 10:00 PM",
+          "saturday": "10:30 AM - 10:00 PM"
+        },
+        "coordinate": { "latitude": 1.29935, "longitude": 103.77538},
+        "imageTab": "teapartyinside.jpeg",
+        "imagePopup": "teaparty.jpeg"
+    },
+    {
+        "id": 11,
+        "name": "Fine Food",
+        "description": "Food Court",
+        "address": "National University Of Singapore, 1 Create Way, Town Plaza, 138602",
+        "openingHours": {
+          "sunday": "8:00 AM - 8:30 PM",
+          "monday": "8:00 AM - 8:30 PM",
+          "tuesday": "8:00 AM - 8:30 PM",
+          "wednesday": "8:00 AM - 8:30 PM",
+          "thursday": "8:00 AM - 8:30 PM",
+          "friday": "8:00 AM - 8:30 PM",
+          "saturday": "8:00 AM - 8:30 PM"
+        },
+        "coordinate": { "latitude": 1.30392, "longitude": 103.77359},
+        "imageTab": "finefoodinside.png",
+        "imagePopup": "finefood.jpeg"
+    },
+    {
+        "id": 12,
+        "name": "Flavours @ UTown",
+        "description": "Food Court",
+        "address": "2 College Ave West, Level 2 Stephen Riady Centre, Singapore 138607",
+        "openingHours": {
+          "sunday": "7:30 AM - 8:30 PM",
+          "monday": "7:30 AM - 8:30 PM",
+          "tuesday": "7:30 AM - 8:30 PM",
+          "wednesday": "7:30 AM - 8:30 PM",
+          "thursday": "7:30 AM - 8:30 PM",
+          "friday": "7:30 AM - 8:30 PM",
+          "saturday": "7:30 AM - 8:30 PM"
+        },
+        "coordinate": { "latitude": 1.30470, "longitude": 103.77272},
+        "imageTab": "flavoursinside.jpeg",
+        "imagePopup": "flavours.jpeg"
+    }
   ]
   

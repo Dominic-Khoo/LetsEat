@@ -31,6 +31,7 @@ const EateryPopup: React.FC<EateryPopupProps> = ({ eatery, onClose }) => {
   const [showOpeningHours, setShowOpeningHours] = useState(false);
   const [showReviews, setShowReviews] = useState(false);
   const [averageRating, setAverageRating] = useState(0);
+  const [latestReviews, setLatestReviews] = useState<any[]>([]);
   const router = useRouter();
   const database = getDatabase();
 
@@ -43,8 +44,12 @@ const EateryPopup: React.FC<EateryPopupProps> = ({ eatery, onClose }) => {
           const totalRatings = Object.values(reviews).map((review: any) => Number(review.rating));
           const average = totalRatings.reduce((acc, rating) => acc + rating, 0) / totalRatings.length;
           setAverageRating(parseFloat(average.toFixed(1)));
+
+          const sortedReviews = Object.values(reviews).sort((a: any, b: any) => b.timestamp - a.timestamp);
+          setLatestReviews(sortedReviews.slice(0, 2));
         } else {
           setAverageRating(0);
+          setLatestReviews([]);
         }
       }).catch((error) => {
         console.error("Error fetching reviews:", error);
@@ -65,6 +70,16 @@ const EateryPopup: React.FC<EateryPopupProps> = ({ eatery, onClose }) => {
     const date = new Date();
     date.setHours(hours, minutes, 0, 0);
     return date;
+  };
+
+  const formatDate = (timestamp: number) => {
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'Asia/Singapore'
+    };
+    return new Date(timestamp).toLocaleDateString('en-SG', options);
   };
 
   if (!eatery) return <Text style={styles.instructions}>Click on an eatery to see more details!</Text>;
@@ -133,13 +148,27 @@ const EateryPopup: React.FC<EateryPopupProps> = ({ eatery, onClose }) => {
             <View style={styles.reviewHeader}>
               <Text style={styles.sectionHeader}>Reviews</Text>
               <Text style={styles.averageRating}>
-                {averageRating.toFixed(1)} <FontAwesome name="star" size={16} color="#FFD700" />
+                {averageRating === 0 ? "No Reviews" : `${averageRating.toFixed(1)}`} <FontAwesome name="star" size={16} color="#FFD700" />
               </Text>
               <Image source={require('../../../../assets/icons/down-arrow.png')} style={styles.downArrow} />
             </View>
             {showReviews && (
-              <TouchableOpacity style={styles.leaveReviewButton} onPress={() => {setIsModalVisible(false);
-                                                                                handleLeaveReview();}}>
+              <View style={styles.reviewsContainer}>
+                {latestReviews.map((review, index) => (
+                  <View key={index} style={styles.reviewItem}>
+                    <Text style={styles.reviewerName}>{review.reviewerUsername}</Text>
+                    <Text style={styles.reviewText}>{review.reviewText}</Text>
+                    <Text style={styles.reviewDate}>{formatDate(review.timestamp)}</Text>
+                    <View style={styles.reviewRating}>
+                      <FontAwesome name="star" size={16} color="#FFD700" />
+                      <Text style={styles.reviewRatingText}>{review.rating}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+            {showReviews && (
+              <TouchableOpacity style={styles.leaveReviewButton} onPress={() => {setIsModalVisible(false); handleLeaveReview();}}>
                 <Text style={styles.leaveReviewButtonText}>Leave a Review</Text>
               </TouchableOpacity>
             )}
@@ -291,7 +320,42 @@ const styles = StyleSheet.create({
   averageRating: {
     fontSize: 16,
     fontFamily: 'Poppins',
-    marginRight: 180,
+    marginRight: 120,
+  },
+  reviewsContainer: {
+    marginTop: 10,
+  },
+  reviewItem: {
+    backgroundColor: '#f9f9f9',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  reviewerName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    fontFamily: 'Poppins',
+  },
+  reviewText: {
+    fontSize: 14,
+    fontFamily: 'Poppins',
+    marginTop: 5,
+  },
+  reviewDate: {
+    fontSize: 12,
+    color: '#777',
+    fontFamily: 'Poppins',
+    marginTop: 5,
+  },
+  reviewRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  reviewRatingText: {
+    fontSize: 14,
+    fontFamily: 'Poppins',
+    marginLeft: 5,
   },
   leaveReviewButton: {
     backgroundColor: 'pink',
