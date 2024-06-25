@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,20 +7,24 @@ import {
   SafeAreaView,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from "react-native";
-import React, { useEffect, useState } from "react";
 import { FIREBASE_AUTH, FIREBASE_DB } from "@/firebaseConfig";
 import { router } from "expo-router";
 import { onValue, ref } from "firebase/database";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { images } from "@/constants";
+import SplashScreen from "@/components/SplashScreen"; // Import SplashScreen
 
 const Profile = () => {
+  const [loading, setLoading] = useState(true); // Add loading state
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [faculty, setFaculty] = useState("");
   const [campusAccomodation, setCampusAccomodation] = useState("");
   const [preferredCuisine, setPreferredCuisine] = useState("");
+  const [loadingImage, setLoadingImage] = useState(true); // Add loading state
+
   const user = FIREBASE_AUTH.currentUser;
 
   useEffect(() => {
@@ -27,24 +32,24 @@ const Profile = () => {
       const userRef = ref(FIREBASE_DB, `users/${user.uid}`);
       onValue(userRef, (snapshot) => {
         const data = snapshot.val();
-        if (data && data.username) {
-          setUsername(data.username);
+        if (data) {
+          if (data.username) setUsername(data.username);
+          if (data.bio) setBio(data.bio);
+          if (data.faculty) setFaculty(data.faculty);
+          if (data.campusAccomodation)
+            setCampusAccomodation(data.campusAccomodation);
+          if (data.preferredCuisine) setPreferredCuisine(data.preferredCuisine);
         }
-        if (data && data.bio) {
-          setBio(data.bio);
-        }
-        if (data && data.faculty) {
-          setFaculty(data.faculty);
-        }
-        if (data && data.campusAccomodation) {
-          setCampusAccomodation(data.campusAccomodation);
-        }
-        if (data && data.preferredCuisine) {
-          setPreferredCuisine(data.preferredCuisine);
-        }
+        setLoading(false); // Set loading to false when data is loaded
       });
+    } else {
+      setLoading(false); // Set loading to false if no user is found
     }
   }, []);
+
+  if (loading) {
+    return <SplashScreen />; // Render SplashScreen while loading
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -57,10 +62,15 @@ const Profile = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={{ height: 30 }} />
-        <Image
-          style={styles.userImg}
-          source={user?.photoURL ? { uri: user.photoURL } : images.profile}
-        />
+        <View style={styles.imageContainer}>
+          {loadingImage && <ActivityIndicator size="large" color="#ff6f69" />}
+          <Image
+            style={styles.userImg}
+            source={user?.photoURL ? { uri: user.photoURL } : images.profile}
+            onLoad={() => setLoadingImage(false)} // Set loading to false when the image loads
+            onError={() => setLoadingImage(false)} // Set loading to false if there's an error loading the image
+          />
+        </View>
 
         <Text className="pt-5 text-2xl text-center font-pblack">
           {username}
@@ -128,6 +138,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
+  },
+
+  imageContainer: {
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   logoutButton: {

@@ -23,11 +23,14 @@ import { Dropdown } from "react-native-element-dropdown";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { BlurView } from "expo-blur";
 import EditProfile from "./EditProfile";
+import { images } from "@/constants";
 
 const UpdateImage = () => {
   const [modalVisible, setModalVisible] = useState(true);
 
   const [profilePicture, setProfilePicture] = useState("");
+  const [loading, setLoading] = useState(false);
+
   // Pick an image from camera roll
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -87,17 +90,19 @@ const UpdateImage = () => {
       await updateProfile(user, {
         photoURL: "",
       });
-      await router.back();
+      console.log("Profile picture deleted");
+      router.navigate("/profile");
     }
   };
 
   // Set the profile data
   const submitData = async () => {
     try {
+      setLoading(true);
       let profilePictureURL = "";
 
       if (user) {
-        if (profilePicture != "") {
+        if (profilePicture) {
           const response = await fetch(profilePicture);
           const blob = await response.blob();
           const storageRef = ref(storage, `images/${user.uid}`);
@@ -121,6 +126,8 @@ const UpdateImage = () => {
       }
     } catch (error) {
       console.log("Error saving profile picture", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -183,12 +190,19 @@ const UpdateImage = () => {
           </View>
         </View>
       </Modal>
+
+      {profilePicture && (
+        <Image source={{ uri: profilePicture }} style={styles.image} />
+      )}
+
       <View style={{ height: 10 }} />
+
       <TouchableOpacity
         style={styles.saveButton}
         onPress={() => {
           submitData();
         }}
+        disabled={loading}
       >
         <Text style={{ fontSize: 14, fontFamily: "Poppins-SemiBold" }}>
           Save Profile Picture
@@ -196,7 +210,7 @@ const UpdateImage = () => {
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => router.replace("./EditProfile")}
+        onPress={() => router.navigate("/profile")}
       >
         <View style={{ height: 5 }} />
         <Text style={{ fontSize: 12, color: "#66545e" }}>Back</Text>

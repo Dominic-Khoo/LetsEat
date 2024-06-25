@@ -7,18 +7,15 @@ import {
   StyleSheet,
   TouchableOpacity,
   ImageBackground,
+  ActivityIndicator,
 } from "react-native";
 import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { FIREBASE_AUTH, storage } from "@/firebaseConfig";
 import { FIREBASE_DB } from "@/firebaseConfig";
 import { ref as ref2, get, set, update, onValue } from "firebase/database";
 import { router } from "expo-router";
 import { updateProfile } from "firebase/auth";
-import * as ImagePicker from "expo-image-picker";
-import * as Linking from "expo-linking";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "@/constants";
 
 const EditProfile = () => {
@@ -28,6 +25,7 @@ const EditProfile = () => {
   const [campusAccomodation, setCampusAccomodation] = useState("");
   const [campusAccomodationLabel, setCampusAccomodationLabel] = useState("");
   const [preferredCuisine, setPreferredCuisine] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Label and value for the faculty dropdown
   const dataFaculty = [
@@ -140,28 +138,34 @@ const EditProfile = () => {
               source={user?.photoURL ? { uri: user.photoURL } : images.profile}
               style={{ height: 100, width: 100 }}
               imageStyle={{ borderRadius: 15 }}
+              onLoadStart={() => setLoading(true)}
+              onLoadEnd={() => setLoading(false)}
             >
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <MaterialCommunityIcons
-                  name="camera"
-                  size={35}
-                  color="#fff"
+              {loading ? (
+                <ActivityIndicator size="large" color="#ff6f69" />
+              ) : (
+                <View
                   style={{
-                    opacity: 0.7,
-                    alignItems: "center",
+                    flex: 1,
                     justifyContent: "center",
-                    borderWidth: 1,
-                    borderColor: "#fff",
-                    borderRadius: 10,
+                    alignItems: "center",
                   }}
-                />
-              </View>
+                >
+                  <MaterialCommunityIcons
+                    name="camera"
+                    size={35}
+                    color="#fff"
+                    style={{
+                      opacity: 0.7,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderWidth: 1,
+                      borderColor: "#fff",
+                      borderRadius: 10,
+                    }}
+                  />
+                </View>
+              )}
             </ImageBackground>
           </View>
         </TouchableOpacity>
@@ -267,7 +271,10 @@ const EditProfile = () => {
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.navigate("/profile")}
+      >
         <Text style={{ fontSize: 13, color: "#66545e" }}>Back</Text>
       </TouchableOpacity>
     </View>
