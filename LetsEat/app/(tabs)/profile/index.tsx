@@ -57,11 +57,11 @@ const Profile = () => {
           source={user?.photoURL ? { uri: user.photoURL } : undefined}
         />
 
-        <Text className="pt-5 text-2xl text-center h-12 font-pblack">
+        <Text className="pt-5 text-2xl text-center  font-pblack">
           {user?.displayName}
         </Text>
 
-        <Text className="pt-5 text-center font-pnormal">{bio}</Text>
+        <Text className="pt-3 text-center font-pnormal">{bio}</Text>
         <View style={styles.userBtnWrapper}>
           <TouchableOpacity
             style={styles.logoutButton}
@@ -129,6 +129,7 @@ const styles = StyleSheet.create({
     margin: 20,
     alignItems: "center",
   },
+
   logoutText: {
     color: "#000000", // Black text color for the logout button text
     fontSize: 16,
