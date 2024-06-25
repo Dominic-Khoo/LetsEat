@@ -14,6 +14,10 @@ const ProfileLayout = () => {
         name="components/EditProfile"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="components/UpdateImage"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 };
