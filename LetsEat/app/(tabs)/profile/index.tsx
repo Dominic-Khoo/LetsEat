@@ -163,10 +163,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     width: "80%",
-    borderRadius: 2,
+    borderRadius: 5,
     margin: 10,
     backgroundColor: "#ff6f69",
     padding: 15,
+    shadowOpacity: 0.2,
   },
   userInfoItem: {
     justifyContent: "center",

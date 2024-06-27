@@ -6,5 +6,10 @@ import logo from "../assets/images/logo1.png";
 import logoSmall from "../assets/images/logo-small.png";
 import empty from "../assets/images/empty.png";
 import logotry from "../assets/images/logotry.png";
+import eating from "../assets/images/eating-preview.png";
+import takefoodpic from "../assets/images/takefoodpic.jpg";
+import ramen from "../assets/images/ramen-preview.png";
+import people from "../assets/images/people-preview.png";
+import college from "../assets/images/college.png";
 
-export default { profile, thumbnail, cards, path, logo, logoSmall, empty, logotry };
+export default { college, people, profile, thumbnail, cards, path, logo, logoSmall, empty, logotry, eating, takefoodpic, ramen};

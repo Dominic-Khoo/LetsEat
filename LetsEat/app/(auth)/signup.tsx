@@ -58,9 +58,7 @@ const Signup = () => {
 
       sendEmailVerification(user);
       Alert.alert("A verification email has been sent to your email address.");
-
-      // Sign out the user
-      signOut(auth);
+      router.push("/(onboarding)/Onboarding");
 
       // Set the displayName
       await updateProfile(user, { displayName: username });
