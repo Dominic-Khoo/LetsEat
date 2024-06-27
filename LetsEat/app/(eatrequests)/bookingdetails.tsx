@@ -6,8 +6,8 @@ import { getDatabase, ref, push } from 'firebase/database';
 import { getAuth } from 'firebase/auth';
 
 const BookingDetails = () => {
-    const { friend } = useLocalSearchParams();
-    const friendData = JSON.parse(friend as string);
+    const { friends } = useLocalSearchParams();
+    const selectedFriends = JSON.parse(friends as string);
     const [date, setDate] = useState<Date | undefined>(undefined);
     const [time, setTime] = useState<Date | undefined>(undefined);
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -28,7 +28,7 @@ const BookingDetails = () => {
         setTime(currentTime);
     };
 
-    const sendBookingRequest = () => {
+    const sendBookingRequests = async () => {
         if (date && time) {
             const auth = getAuth();
             const currentUser = auth.currentUser;
@@ -45,16 +45,19 @@ const BookingDetails = () => {
                 requesterUsername: currentUser.displayName, 
             };
 
-            const bookingRef = ref(database, `users/${friendData.uid}/bookingRequests`);
-            push(bookingRef, bookingDetails)
-                .then(() => {
-                    alert(`Booking request sent to ${friendData.username} for ${date.toLocaleDateString()} at ${time.toLocaleTimeString()}`);
-                    router.back(); 
-                })
-                .catch((error) => {
-                    console.error("Error sending booking request: ", error);
-                    alert('Error sending booking request. Please try again.');
+            try {
+                const requests = selectedFriends.map((friend: { uid: string, username: string }) => {
+                    const bookingRef = ref(database, `users/${friend.uid}/bookingRequests`);
+                    return push(bookingRef, bookingDetails);
                 });
+
+                await Promise.all(requests);
+                alert(`Booking requests sent to ${selectedFriends.map((friend: { username: string }) => friend.username).join(', ')} for ${date.toLocaleDateString()} at ${time.toLocaleTimeString()}`);
+                router.back();
+            } catch (error) {
+                console.error("Error sending booking requests: ", error);
+                alert('Error sending booking requests. Please try again.');
+            }
         } else {
             alert('Please select both date and time.');
         }
@@ -64,7 +67,7 @@ const BookingDetails = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.header}>Booking with {friendData.username}</Text>
+            <Text style={styles.header}>Booking with {selectedFriends.map((friend: { username: string }) => friend.username).join(', ')}</Text>
             <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.picker}>
                 <Text style={styles.pickerText}>
                     {date ? date.toLocaleDateString() : 'Select Date'}
@@ -93,8 +96,8 @@ const BookingDetails = () => {
                     onChange={onTimeChange}
                 />
             )}
-            <TouchableOpacity onPress={sendBookingRequest} style={styles.button}>
-                <Text style={styles.buttonText}>Send Booking Request</Text>
+            <TouchableOpacity onPress={sendBookingRequests} style={styles.button}>
+                <Text style={styles.buttonText}>Send Booking Requests</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                 <Text style={styles.backButtonText}>Go Back</Text>
@@ -114,6 +117,7 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontFamily: 'Poppins-SemiBold',
         marginBottom: 20,
+        textAlign: 'center',
     },
     picker: {
         marginVertical: 10,

@@ -5,7 +5,7 @@ const ReqLayout = () => {
   return (
     <Stack>
       <Stack.Screen
-        name="request"
+        name="index"
         options={{
           headerShown: false,
         }}

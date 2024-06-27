@@ -127,6 +127,12 @@ const UserList = () => {
         }
     };
 
+    const viewProfile = () => {
+        if (selectedUser) {
+            router.push({ pathname: './PublicProfile', params: { uid: selectedUser.uid } });
+        }
+    };
+
     return (
         <View style={styles.container}>
             <Text style={styles.sectionTitle}>Users List</Text>
@@ -150,9 +156,13 @@ const UserList = () => {
                         </TouchableOpacity>
                         {selectedUser && selectedUser.uid === user.uid && tabVisible && (
                             <View style={styles.tabContainer}>
+                                <TouchableOpacity style={styles.profileButton} onPress={viewProfile}>
+                                    <Text style={styles.tabButtonText}>View Profile</Text>
+                                </TouchableOpacity>
                                 <TouchableOpacity style={styles.tabButton} onPress={sendFriendRequest} disabled={sendingRequest}>
                                     <Text style={styles.tabButtonText}>Send Friend Request</Text>
                                 </TouchableOpacity>
+                               
                             </View>
                         )}
                     </View>
@@ -236,6 +246,12 @@ const styles = StyleSheet.create({
         padding: 5,
         borderRadius: 5,
         marginLeft: 5,
+    },
+    profileButton: {
+        backgroundColor: '#f87171',
+        padding: 5,
+        borderRadius:5,
+        marginLeft:5,
     },
     tabButtonText: {
         color: '#fff',
