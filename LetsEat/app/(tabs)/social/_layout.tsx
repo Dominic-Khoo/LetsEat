@@ -17,6 +17,10 @@ const SocialLayout = () => {
       <Stack.Screen
         name="components/Chat"
         options={{ headerShown: false }} />
+      <Stack.Screen
+        name="components/PublicProfile"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 };

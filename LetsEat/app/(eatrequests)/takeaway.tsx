@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Modal, TouchableWithoutFeedback, Image } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { ref, onValue, push, set } from 'firebase/database';
+import { useRouter } from 'expo-router';
+import eateries from '../../eateries.json'; 
 import { FIREBASE_DB } from '../../firebaseConfig';
-import { router } from 'expo-router';
 
 type Friend = {
     uid: string;
@@ -11,13 +12,36 @@ type Friend = {
     username: string;
 };
 
+type Eatery = {
+    id: number;
+    name: string;
+    description: string;
+    address: string;
+    openingHours: {
+        sunday: string;
+        monday: string;
+        tuesday: string;
+        wednesday: string;
+        thursday: string;
+        friday: string;
+        saturday: string;
+    };
+    coordinate: {
+        latitude: number;
+        longitude: number;
+    };
+    imageTab: string;
+    imagePopup: string;
+};
+
 const TakeawayScreen = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [friends, setFriends] = useState<Friend[]>([]);
     const [filteredFriends, setFilteredFriends] = useState<Friend[]>([]);
-    const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
-    const [location, setLocation] = useState('');
+    const [selectedFriends, setSelectedFriends] = useState<Friend[]>([]);
+    const [selectedEatery, setSelectedEatery] = useState<Eatery | null>(null);
     const [requestSentModalVisible, setRequestSentModalVisible] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         const auth = getAuth();
@@ -57,13 +81,17 @@ const TakeawayScreen = () => {
 
     // Handle friend click
     const handleFriendClick = (friend: Friend) => {
-        setSelectedFriend(friend);
+        if (selectedFriends.some(selected => selected.uid === friend.uid)) {
+            setSelectedFriends(selectedFriends.filter(selected => selected.uid !== friend.uid));
+        } else {
+            setSelectedFriends([...selectedFriends, friend]);
+        }
     };
 
     // Handle sending Takeaway Request
-    const sendTakeawayRequest = async (friend: Friend) => {
-        if (!location) {
-            alert("Please enter a location.");
+    const sendTakeawayRequests = async () => {
+        if (!selectedEatery) {
+            alert("Please select an eatery.");
             return;
         }
 
@@ -72,23 +100,29 @@ const TakeawayScreen = () => {
         if (!currentUser) return;
 
         try {
-            const requestRef = ref(FIREBASE_DB, `users/${friend.uid}/takeawayRequests`);
-            const newRequestRef = push(requestRef);
-            await set(newRequestRef, {
-                requesterUid: currentUser.uid,
-                requesterEmail: currentUser.email,
-                requesterUsername: currentUser.displayName,
-                location: location,
-                timestamp: Date.now(),
+            const requests = selectedFriends.map(friend => {
+                const requestRef = ref(FIREBASE_DB, `users/${friend.uid}/takeawayRequests`);
+                const newRequestRef = push(requestRef);
+                return set(newRequestRef, {
+                    requesterUid: currentUser.uid,
+                    requesterEmail: currentUser.email,
+                    requesterUsername: currentUser.displayName,
+                    eatery: selectedEatery.name,
+                    timestamp: Date.now(),
+                });
             });
-            console.log('Takeaway Request sent successfully to:', friend.email);
+
+            await Promise.all(requests);
+            console.log('Takeaway Requests sent successfully');
             setRequestSentModalVisible(true); // Show the success modal
-            setLocation(''); // Clear the location input
-            setSelectedFriend(null); // Clear the selected friend
+            setSelectedFriends([]); // Clear selected friends
+            setSelectedEatery(null); // Clear selected eatery
         } catch (error) {
-            console.error('Error sending Takeaway Request:', (error as Error).message);
+            console.error('Error sending Takeaway Requests:', (error as Error).message);
         }
     };
+
+    const isSelected = (friend: Friend) => selectedFriends.some(selected => selected.uid === friend.uid);
 
     return (
         <View style={styles.container}>
@@ -106,23 +140,31 @@ const TakeawayScreen = () => {
                 {filteredFriends.map((friend: Friend) => (
                     <TouchableOpacity key={friend.uid} style={styles.item} onPress={() => handleFriendClick(friend)}>
                         <Text style={styles.name}>{friend.username}</Text>
+                        <View style={styles.selectionIndicatorContainer}>
+                            <View style={[styles.selectionIndicator, isSelected(friend) && styles.selected]} />
+                        </View>
                     </TouchableOpacity>
                 ))}
             </ScrollView>
-            {selectedFriend && (
+            {selectedFriends.length > 0 && (
                 <View style={styles.actionsContainer}>
                     <Text style={styles.selectedFriendText}>Where to Takeaway From?</Text>
-                    <TextInput
-                        style={styles.locationInput}
-                        placeholder="Enter location..."
-                        onChangeText={setLocation}
-                        value={location}
-                    />
+                    <ScrollView style={styles.eateriesContainer}>
+                        {eateries.map((eatery: Eatery) => (
+                            <TouchableOpacity
+                                key={eatery.id}
+                                style={[styles.eateryItem, selectedEatery?.id === eatery.id && styles.selectedEatery]}
+                                onPress={() => setSelectedEatery(eatery)}
+                            >
+                                <Text style={styles.eateryName}>{eatery.name}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
                     <TouchableOpacity
                         style={styles.actionButton}
-                        onPress={() => sendTakeawayRequest(selectedFriend)}
+                        onPress={sendTakeawayRequests}
                     >
-                        <Text style={styles.actionButtonText}>Ask {selectedFriend.username} for help!</Text>
+                        <Text style={styles.actionButtonText}>Ask for help from selected friends</Text>
                     </TouchableOpacity>
                 </View>
             )}
@@ -180,11 +222,32 @@ const styles = StyleSheet.create({
         padding: 10,
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
     name: {
         fontSize: 18,
         fontFamily: 'Poppins',
         color: '#333',
+    },
+    selectionIndicatorContainer: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: '#000',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    selectionIndicator: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: 'transparent',
+    },
+    selected: {
+        backgroundColor: '#F87171',
     },
     actionsContainer: {
         padding: 10,
@@ -196,12 +259,26 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins',
         marginBottom: 10,
     },
-    locationInput: {
+    eateriesContainer: {
+        maxHeight: 200,
         borderWidth: 2,
         borderColor: '#000',
         borderRadius: 10,
-        padding: 10,
         marginBottom: 10,
+    },
+    eateryItem: {
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+    },
+    eateryName: {
+        fontSize: 18,
+        fontFamily: 'Poppins',
+        color: '#333',
+    },
+    selectedEatery: {
+        backgroundColor: '#F87171',
+        color: '#fff',
     },
     actionButton: {
         padding: 10,

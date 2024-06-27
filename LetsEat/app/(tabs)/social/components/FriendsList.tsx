@@ -64,10 +64,9 @@ const FriendsList = () => {
     };
 
     const handleViewProfile = () => {
-        // Handle view profile action
+        // Navigate to the friend's public profile screen
         if (selectedFriend) {
-            console.log('View profile:', selectedFriend);
-            // Implement logic to view profile
+            router.push({ pathname: './social/components/PublicProfile', params: { uid: selectedFriend.uid } });
         }
     };
 
@@ -178,6 +177,16 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
+    },
+    backButton: {
+        position: 'absolute',
+        top: 5,
+        left: 5,
+        zIndex: 1,
+    },
+    backIcon: {
+        width: 24,
+        height: 24,
     },
     sectionTitle: {
         fontSize: 18,
