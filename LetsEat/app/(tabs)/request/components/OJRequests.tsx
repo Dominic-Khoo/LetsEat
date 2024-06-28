@@ -63,7 +63,7 @@ const IncomingOpenJio: React.FC<IncomingOpenJioProps> = ({ onRequestUpdate }) =>
         if (!currentUser) return;
 
         const currentUserUid = currentUser.uid;
-        const currentUsername = currentUser.displayName || '';
+        const currentUsername = currentUser.displayName;
 
         const acceptedRequest = requests.find(request => request.id === id);
         if (!acceptedRequest) return;

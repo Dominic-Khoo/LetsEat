@@ -18,6 +18,10 @@ const ProfileLayout = () => {
         name="components/UpdateImage"
         options={{ headerTitle: "Profile Picture", presentation: "modal" }}
       />
+      <Stack.Screen
+        name="components/Achievements"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 };

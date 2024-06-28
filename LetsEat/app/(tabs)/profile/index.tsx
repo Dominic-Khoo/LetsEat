@@ -115,6 +115,13 @@ const Profile = () => {
             <Text style={styles.userInfoSubTitle}>{preferredCuisine}</Text>
           </View>
         </View>
+
+        <TouchableOpacity
+          style={styles.achievementsButton}
+          onPress={() => router.push("./profile/components/Achievements")}
+        >
+          <Text style={styles.achievementsText}>View Achievements</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -178,10 +185,24 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 10,
     textAlign: "center",
+    fontFamily: "Poppins-SemiBold",
   },
   userInfoSubTitle: {
     fontSize: 17,
     color: "black",
     textAlign: "center",
+    fontFamily: "Poppins-Regular",
+  },
+  achievementsButton: {
+    backgroundColor: "#ff6f69",
+    padding: 10,
+    borderRadius: 8,
+    margin: 20,
+    alignItems: "center",
+  },
+  achievementsText: {
+    color: "#fff",
+    fontSize: 16,
+    fontFamily: "Poppins-SemiBold",
   },
 });
