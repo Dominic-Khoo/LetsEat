@@ -8,8 +8,8 @@ import {
   Modal,
   Alert,
   TouchableOpacity,
-  Text,
   ImageBackground,
+  Text as TextNative,
 } from "react-native";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { FIREBASE_AUTH, storage } from "@/firebaseConfig";
@@ -21,6 +21,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as Linking from "expo-linking";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { images } from "@/constants";
+import * as Animatable from "react-native-animatable";
 
 const SetUpAcc = () => {
   const [bio, setBio] = useState("");
@@ -115,9 +116,12 @@ const SetUpAcc = () => {
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        <Text style={{ fontSize: 20, color: "black", fontWeight: "bold" }}>
+        <Animatable.Text
+          style={{ fontSize: 20, color: "black", fontWeight: "bold" }}
+          animation="slideInDown"
+        >
           Set profile picture
-        </Text>
+        </Animatable.Text>
         <View style={{ height: 15 }} />
         <TouchableOpacity
           style={[styles.button, styles.buttonClose]}
@@ -125,7 +129,7 @@ const SetUpAcc = () => {
             pickImage();
           }}
         >
-          <Text style={styles.textStyle}>Choose photo</Text>
+          <TextNative style={styles.textStyle}>Choose photo</TextNative>
         </TouchableOpacity>
         <View style={{ height: 10 }} />
 
@@ -135,7 +139,7 @@ const SetUpAcc = () => {
             handleCameraPermission();
           }}
         >
-          <Text style={styles.textStyle}>Take photo</Text>
+          <TextNative style={styles.textStyle}>Take photo</TextNative>
         </TouchableOpacity>
         <View style={{ height: 5 }} />
 
@@ -145,9 +149,12 @@ const SetUpAcc = () => {
 
         <View style={{ height: 50 }} />
 
-        <Text style={{ fontSize: 20, color: "black", fontWeight: "bold" }}>
+        <Animatable.Text
+          style={{ fontSize: 20, color: "black", fontWeight: "bold" }}
+          animation="fadeInLeftBig"
+        >
           Input bio
-        </Text>
+        </Animatable.Text>
         <View style={{ height: 10 }} />
 
         <TextInput
@@ -160,7 +167,7 @@ const SetUpAcc = () => {
         <View style={{ height: 80 }} />
       </View>
 
-      <View style={styles.nextButton}>
+      <Animatable.View style={styles.nextButton} animation="fadeInRightBig">
         <TouchableOpacity
           style={styles.saveButton}
           onPress={() => {
@@ -171,9 +178,13 @@ const SetUpAcc = () => {
         >
           <Icon name="arrow-right" size={20} color="#fff" />
         </TouchableOpacity>
-      </View>
+      </Animatable.View>
       <View style={styles.imageContainer}>
-        <Image source={images.people} style={styles.imageBottom} />
+        <Animatable.Image
+          source={images.people}
+          style={styles.imageBottom}
+          animation="bounceIn"
+        />
       </View>
     </View>
   );
