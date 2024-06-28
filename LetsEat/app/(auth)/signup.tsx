@@ -57,7 +57,6 @@ const Signup = () => {
       // Send an email verification to the users email
 
       sendEmailVerification(user);
-      Alert.alert("A verification email has been sent to your email address.");
       router.push("/(onboarding)/Onboarding");
 
       // Set the displayName
