@@ -7,6 +7,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import { router } from "expo-router";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { images } from "@/constants";
+import * as Animatable from "react-native-animatable";
 
 const OtherInfo = () => {
   const [faculty, setFaculty] = useState("");
@@ -87,16 +88,17 @@ const OtherInfo = () => {
   return (
     <View style={styles.container}>
       <View style={{ alignItems: "center" }}>
-        <Text
+        <Animatable.Text
           style={{
             fontSize: 20,
             color: "black",
             fontWeight: "bold",
             alignItems: "center",
           }}
+          animation="fadeInLeft"
         >
           Almost there...
-        </Text>
+        </Animatable.Text>
       </View>
 
       <View style={{ height: 30 }} />
@@ -150,7 +152,7 @@ const OtherInfo = () => {
       </View>
       <View style={{ height: 20 }} />
 
-      <View style={styles.nextButton}>
+      <Animatable.View style={styles.nextButton} animation="slideInRight">
         <TouchableOpacity
           style={styles.saveButton}
           onPress={() => {
@@ -161,10 +163,14 @@ const OtherInfo = () => {
         >
           <Icon name="arrow-right" size={20} color="#fff" />
         </TouchableOpacity>
-      </View>
+      </Animatable.View>
 
       <View style={styles.imageContainer}>
-        <Image source={images.college} style={styles.image} />
+        <Animatable.Image
+          source={images.college}
+          style={styles.image}
+          animation="bounceInUp"
+        />
       </View>
     </View>
   );

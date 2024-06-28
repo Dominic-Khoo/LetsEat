@@ -14,6 +14,7 @@ import { MultiSelect } from "react-native-element-dropdown";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { images } from "@/constants";
+import * as Animatable from "react-native-animatable";
 
 const PreferredFood = () => {
   const [preferredCuisine, setPreferredCuisine] = useState<string[]>([]);
@@ -69,16 +70,17 @@ const PreferredFood = () => {
   return (
     <View style={styles.container}>
       <View style={{ alignItems: "center" }}>
-        <Text
+        <Animatable.Text
           style={{
             fontSize: 20,
             color: "black",
             fontWeight: "bold",
             alignItems: "center",
           }}
+          animation="slideInLeft"
         >
           Last but not least...
-        </Text>
+        </Animatable.Text>
       </View>
       <View style={{ height: 30 }} />
       <View style={{ paddingHorizontal: 20 }}>
@@ -106,7 +108,7 @@ const PreferredFood = () => {
         />
       </View>
       <View style={{ height: 55 }} />
-      <View style={{ alignItems: "center" }}>
+      <Animatable.View style={{ alignItems: "center" }} animation="bounceIn">
         <TouchableOpacity
           style={styles.saveButton}
           onPress={() => {
@@ -117,9 +119,13 @@ const PreferredFood = () => {
             Let's go!
           </Text>
         </TouchableOpacity>
-      </View>
+      </Animatable.View>
       <View style={styles.imageContainer}>
-        <Image source={images.ramen} style={styles.image} />
+        <Animatable.Image
+          source={images.ramen}
+          style={styles.image}
+          animation="fadeInUp"
+        />
       </View>
     </View>
   );

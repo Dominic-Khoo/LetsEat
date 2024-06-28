@@ -16,7 +16,7 @@ const ProfileLayout = () => {
       />
       <Stack.Screen
         name="components/UpdateImage"
-        options={{ headerShown: false }}
+        options={{ headerTitle: "Profile Picture", presentation: "modal" }}
       />
     </Stack>
   );

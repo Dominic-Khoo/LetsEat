@@ -9,13 +9,12 @@ import {
   Alert,
   TouchableOpacity,
   Text,
-  ImageBackground,
 } from "react-native";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { FIREBASE_AUTH, storage } from "@/firebaseConfig";
 import { FIREBASE_DB } from "@/firebaseConfig";
 import { ref as ref2, get, set, update } from "firebase/database";
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 import { updateProfile } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
 import * as Linking from "expo-linking";
@@ -24,10 +23,9 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import { BlurView } from "expo-blur";
 import EditProfile from "./EditProfile";
 import { images } from "@/constants";
+import { StatusBar } from "expo-status-bar";
 
 const UpdateImage = () => {
-  const [modalVisible, setModalVisible] = useState(true);
-
   const [profilePicture, setProfilePicture] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -133,88 +131,54 @@ const UpdateImage = () => {
 
   return (
     <View style={styles.container}>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          Alert.alert("Modal has been closed.");
-          setModalVisible(!modalVisible);
-        }}
-      >
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      <StatusBar style="light" />
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        {profilePicture && (
+          <Image source={{ uri: profilePicture }} style={styles.image} />
+        )}
+
+        <View style={{ height: 25 }} />
+        <TouchableOpacity
+          style={[styles.button, styles.buttonClose]}
+          onPress={() => {
+            pickImage();
+          }}
         >
-          <View style={styles.modalView}>
-            <View style={{ height: 10 }} />
-            <TouchableOpacity
-              style={[styles.button, styles.buttonClose]}
-              onPress={() => {
-                setModalVisible(!modalVisible);
-                pickImage();
-              }}
-            >
-              <Text style={styles.textStyle}>Choose photo</Text>
-            </TouchableOpacity>
-            <View style={{ height: 10 }} />
+          <Text style={styles.textStyle}>Choose photo</Text>
+        </TouchableOpacity>
+        <View style={{ height: 10 }} />
 
-            <TouchableOpacity
-              style={[styles.button, styles.buttonClose]}
-              onPress={() => {
-                setModalVisible(!modalVisible);
-                handleCameraPermission();
-              }}
-            >
-              <Text style={styles.textStyle}>Take photo</Text>
-            </TouchableOpacity>
-            <View style={{ height: 5 }} />
-            <View style={{ height: 5 }} />
+        <TouchableOpacity
+          style={[styles.button, styles.buttonClose]}
+          onPress={() => {
+            handleCameraPermission();
+          }}
+        >
+          <Text style={styles.textStyle}>Take photo</Text>
+        </TouchableOpacity>
+        <View style={{ height: 10 }} />
 
-            <TouchableOpacity
-              style={[styles.button, styles.buttonClose]}
-              onPress={() => {
-                setModalVisible(!modalVisible);
-                handleDeletePhoto();
-              }}
-            >
-              <Text style={styles.textStyle}>Delete photo</Text>
-            </TouchableOpacity>
-            <View style={{ height: 5 }} />
+        <TouchableOpacity
+          style={[styles.button, styles.buttonClose]}
+          onPress={() => {
+            handleDeletePhoto();
+          }}
+        >
+          <Text style={styles.textStyle}>Delete photo</Text>
+        </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <Text style={{ fontSize: 15, color: "#66545e" }}>Back</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {profilePicture && (
-        <Image source={{ uri: profilePicture }} style={styles.image} />
-      )}
-
-      <View style={{ height: 10 }} />
-
-      <TouchableOpacity
-        style={styles.saveButton}
-        onPress={() => {
-          submitData();
-        }}
-        disabled={loading}
-      >
-        <Text style={{ fontSize: 14, fontFamily: "Poppins-SemiBold" }}>
-          Save Profile Picture
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => router.navigate("/profile")}
-      >
-        <View style={{ height: 5 }} />
-        <Text style={{ fontSize: 12, color: "#66545e" }}>Back</Text>
-      </TouchableOpacity>
+        <View style={{ height: 20 }} />
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={() => {
+            submitData();
+            router.replace("/profile");
+          }}
+          disabled={loading}
+        >
+          <Text style={{ fontWeight: "bold", fontSize: 20 }}>Save</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -259,9 +223,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
+    borderRadius: 14,
+    padding: 15,
+    shadowOpacity: 0.2,
   },
 
   buttonClose: {
@@ -271,7 +235,8 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: 17,
+    fontSize: 16,
+    fontFamily: "Poppins",
   },
   modalText: {
     marginBottom: 15,
@@ -285,8 +250,8 @@ const styles = StyleSheet.create({
 
   saveButton: {
     backgroundColor: "#FFCACA",
-    padding: 10,
-    borderRadius: 8,
+    padding: 8,
+    borderRadius: 5,
     alignItems: "center",
   },
 });

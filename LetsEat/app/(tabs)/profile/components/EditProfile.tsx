@@ -124,7 +124,7 @@ const EditProfile = () => {
         <Text className="p-2 text-xl text-center font-bold">
           {user?.displayName}
         </Text>
-        <TouchableOpacity onPress={() => router.replace("./UpdateImage")}>
+        <TouchableOpacity onPress={() => router.push("./UpdateImage")}>
           <View
             style={{
               height: 100,
