@@ -8,7 +8,7 @@ import { ref, onValue, get } from "firebase/database";
 import { FIREBASE_DB } from "../../../firebaseConfig";
 import Daily from "./components/Daily";
 import Streaks from "./components/Streaks";
-import Achievements from "./components/Achievements";
+import Leaderboards from "./components/Leaderboards";
 
 const Home = () => {
   const [username, setUsername] = useState("");
@@ -130,7 +130,7 @@ const Home = () => {
           </View>
         </View>
         <Streaks />
-        <Achievements />
+        <Leaderboards />
       </View>
       <Modal
         animationType="slide"

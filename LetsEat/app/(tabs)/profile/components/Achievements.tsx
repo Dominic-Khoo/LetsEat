@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { ref, onValue } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
+import { useRouter } from 'expo-router';
 
 type Achievement = {
     id: string;
@@ -25,8 +26,8 @@ const achievementsData: Achievement[] = [
   { id: 'dabaoKing', name: 'Dabao King', criteria: 'takeawayCount', threshold: 10, image: require('../../../../assets/icons/package.png'), description: 'Takeaway 10 times' },
   { id: 'frequentDiner', name: 'Frequent Diner', criteria: 'mealsCount', threshold: 3, image: require('../../../../assets/icons/dinner.png'), description: 'Have 3 meals' },
   { id: 'gettingStarted', name: 'Getting Started', criteria: 'friendsCount', threshold: 3, image: require('../../../../assets/icons/friends.png'), description: 'Make 3 friends' },
-  { id: 'eatingKakis', name: 'Eating-Kakis', criteria: 'friendsCount', threshold: 50, image: require('../../../../assets/icons/friendship.png'), description: 'Make 50 friends' },
-  { id: 'papaPaparazzi', name: 'Papa-paparazzi', criteria: 'friendsCount', threshold: 100, image: require('../../../../assets/icons/accommodation.png'), description: 'Make 100 friends' },
+  { id: 'eatingKakis', name: 'Eating-Kakis', criteria: 'friendsCount', threshold: 20, image: require('../../../../assets/icons/friendship.png'), description: 'Make 20 friends' },
+  { id: 'papaPaparazzi', name: 'Papa-paparazzi', criteria: 'friendsCount', threshold: 50, image: require('../../../../assets/icons/accommodation.png'), description: 'Make 50 friends' },
   { id: 'eventPlanner', name: 'Event Planner', criteria: 'plannerCount', threshold: 5, image: require('../../../../assets/icons/planner.png'), description: 'Plan 5 events' },
 ];
 
@@ -38,6 +39,8 @@ const Achievements = () => {
     friendsCount: 0,
     plannerCount: 0,
   });
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -82,6 +85,9 @@ const Achievements = () => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Image source={require('../../../../assets/icons/back.png')} style={styles.backIcon} />
+      </TouchableOpacity>
       <Text style={styles.header}>Achievements</Text>
       <ScrollView style={styles.scrollView}>
         {sortedAchievements.map((achievement, index) => (
@@ -106,10 +112,23 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
+  backButton: {
+    position: 'absolute',
+    top: 5,
+    left: 5,
+    zIndex: 1,
+  },
+  backIcon: {
+    width: 24,
+    height: 24,
+    marginTop: 10,
+    marginLeft: 10,
+  },
   header: {
     fontSize: 24,
     fontFamily: 'Poppins-SemiBold',
     marginBottom: 10,
+    textAlign: 'center',
   },
   scrollView: {
     borderWidth: 2,
