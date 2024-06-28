@@ -16,8 +16,9 @@ import { router } from "expo-router";
 import { images } from "@/constants";
 
 const PreferredFood = () => {
-  const [preferredFood, setPreferredFood] = useState<string[]>([]);
+  const [preferredCuisine, setPreferredCuisine] = useState<string[]>([]);
 
+  // Label and value for the preferred cuisine dropdown
   const dataCuisine = [
     { label: "Chinese", value: " Chinese " },
     { label: "Malay", value: " Malay " },
@@ -42,10 +43,16 @@ const PreferredFood = () => {
         console.log(user.displayName);
 
         // Update the database with the new data, keeping the existing email
-        await update(userRef, {
+        await set(userRef, {
+          username: userData.username,
+          email: userData.email,
+          profilePicture: user.photoURL,
+          bio: userData.bio,
+          faculty: userData.faculty,
+          campusAccomodation: userData.campusAccomodation,
           preferredCuisine:
-            preferredFood.length > 0
-              ? preferredFood
+            preferredCuisine.length > 0
+              ? preferredCuisine
               : userData.preferredCuisine,
         });
 
@@ -55,7 +62,7 @@ const PreferredFood = () => {
         console.log("Error saving profile data", error);
       }
     }
-    signOut(FIREBASE_AUTH); 
+    signOut(FIREBASE_AUTH);
     router.replace("/login");
   };
 
@@ -84,9 +91,9 @@ const PreferredFood = () => {
           labelField="label"
           valueField="value"
           placeholder="Preferred cuisines"
-          value={preferredFood}
+          value={preferredCuisine}
           onChange={(item) => {
-            setPreferredFood(item);
+            setPreferredCuisine(item);
           }}
           renderSelectedItem={(item, unSelect) => (
             <TouchableOpacity onPress={() => unSelect && unSelect(item)}>
