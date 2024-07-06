@@ -6,7 +6,7 @@ import { FIREBASE_DB } from '../../../../firebaseConfig';
 
 interface Request {
     id: string;
-    location: string;
+    eatery: string;
     requesterEmail: string;
     requesterUid: string;
     requesterUsername: string;
@@ -40,7 +40,7 @@ const IncomingTakeaway: React.FC<IncomingTakeawayProps> = ({ onRequestUpdate }) 
             if (data) {
                 const takeawayRequests = Object.keys(data).map(key => ({
                     id: key,
-                    location: data[key].location,
+                    eatery: data[key].eatery,
                     requesterEmail: data[key].requesterEmail,
                     requesterUid: data[key].requesterUid,
                     requesterUsername: data[key].requesterUsername,
@@ -67,7 +67,7 @@ const IncomingTakeaway: React.FC<IncomingTakeawayProps> = ({ onRequestUpdate }) 
         const acceptedRequest = requests.find(request => request.id === id);
         if (!acceptedRequest) return;
 
-        const { requesterUid, requesterUsername, location } = acceptedRequest;
+        const { requesterUid, requesterUsername, eatery } = acceptedRequest;
 
         // Convert the current date to Singapore timezone
         const options: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Singapore', year: 'numeric', month: '2-digit', day: '2-digit' };
@@ -77,7 +77,7 @@ const IncomingTakeaway: React.FC<IncomingTakeawayProps> = ({ onRequestUpdate }) 
 
         const newEvent: Event = {
             day: currentDate,
-            name: `Takeaway from ${location} for ${requesterUsername}`,
+            name: `Takeaway from ${eatery} for ${requesterUsername}`,
             height: 50,
             icon: 'takeaway',
             type: 'Takeaway',
@@ -86,7 +86,7 @@ const IncomingTakeaway: React.FC<IncomingTakeawayProps> = ({ onRequestUpdate }) 
         };
         const newSenderEvent: Event = {
             day: currentDate,
-            name: `Takeaway from ${location} by ${currentUsername}`,
+            name: `Takeaway from ${eatery} by ${currentUsername}`,
             height: 50,
             icon: 'takeaway',
             type: 'Takeaway',
@@ -187,7 +187,7 @@ const IncomingTakeaway: React.FC<IncomingTakeawayProps> = ({ onRequestUpdate }) 
                 <View style={styles.requestContent}>
                     <Image source={require('../../../../assets/icons/takeaway.png')} style={styles.leftIcon} />
                     <Text style={styles.requestText}>
-                        <Text style={styles.boldText}>Takeaway from {request.location}</Text> for {request.requesterUsername}
+                        <Text style={styles.boldText}>Takeaway from {request.eatery}</Text> for {request.requesterUsername}
                     </Text>
                 </View>
                 <View style={styles.buttonContainer}>
