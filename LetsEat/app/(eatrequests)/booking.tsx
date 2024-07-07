@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Modal, TouchableWithoutFeedback, Image } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, get } from 'firebase/database';
 import { FIREBASE_DB } from '../../firebaseConfig';
 import { useRouter } from 'expo-router';
 
@@ -11,6 +11,7 @@ type Friend = {
     username: string;
     faculty: string;
     campusAccomodation: string;
+    profilePicture?: string;
 };
 
 const BookingScreen = () => {
@@ -35,15 +36,21 @@ const BookingScreen = () => {
         if (!currentUser) return;
 
         const friendsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/friendsList`);
-        onValue(friendsRef, (snapshot) => {
+        onValue(friendsRef, async (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                const friendsList = Object.keys(data).map(key => ({
-                    uid: key,
-                    email: data[key].email,
-                    username: data[key].username,
-                    faculty: data[key].faculty || '',
-                    campusAccomodation: data[key].campusAccomodation || '',
+                const friendsList = await Promise.all(Object.keys(data).map(async key => {
+                    const userRef = ref(FIREBASE_DB, `users/${key}`);
+                    const userSnapshot = await get(userRef);
+                    const userData = userSnapshot.val();
+                    return {
+                        uid: key,
+                        email: data[key].email,
+                        username: data[key].username,
+                        faculty: userData?.faculty || '',
+                        campusAccomodation: userData?.campusAccomodation || '',
+                        profilePicture: userData?.profilePicture || null,
+                    };
                 }));
                 setFriends(friendsList);
                 setFilteredFriends(friendsList); // Initialize filtered friends list
@@ -63,15 +70,21 @@ const BookingScreen = () => {
                 setCampusName(campusAccomodation);
 
                 const allUsersRef = ref(FIREBASE_DB, `users`);
-                onValue(allUsersRef, (allSnapshot) => {
+                onValue(allUsersRef, async (allSnapshot) => {
                     const allUsersData = allSnapshot.val();
                     if (allUsersData) {
-                        const allUsers = Object.keys(allUsersData).map(key => ({
-                            uid: key,
-                            email: allUsersData[key].email,
-                            username: allUsersData[key].username,
-                            faculty: allUsersData[key].faculty,
-                            campusAccomodation: allUsersData[key].campusAccomodation,
+                        const allUsers = await Promise.all(Object.keys(allUsersData).map(async key => {
+                            const userRef = ref(FIREBASE_DB, `users/${key}`);
+                            const userSnapshot = await get(userRef);
+                            const userData = userSnapshot.val();
+                            return {
+                                uid: key,
+                                email: allUsersData[key].email,
+                                username: allUsersData[key].username,
+                                faculty: allUsersData[key].faculty,
+                                campusAccomodation: allUsersData[key].campusAccomodation,
+                                profilePicture: userData?.profilePicture || null,
+                            };
                         }));
 
                         const isFriend = (uid: string) => friends.some(friend => friend.uid === uid);
@@ -98,7 +111,6 @@ const BookingScreen = () => {
         });
     }, []);
 
-    // Update filtered friends and recommendations based on search query
     const handleSearch = (query: string) => {
         setSearchQuery(query);
         if (!query) {
@@ -123,7 +135,6 @@ const BookingScreen = () => {
         setFilteredCampusRecommendations(filteredCampus);
     };
 
-    // Handle friend click
     const handleFriendClick = (friend: Friend) => {
         if (selectedFriends.some(selected => selected.uid === friend.uid)) {
             setSelectedFriends(selectedFriends.filter(selected => selected.uid !== friend.uid));
@@ -132,7 +143,6 @@ const BookingScreen = () => {
         }
     };
 
-    // Handle routing to the booking details screen
     const setBookingDetails = () => {
         router.push({ pathname: './bookingdetails', params: { friends: JSON.stringify(selectedFriends) } });
     };
@@ -152,50 +162,61 @@ const BookingScreen = () => {
                 value={searchQuery}
             />
             <Text style={styles.subHeader}>Friends List</Text>
-            <ScrollView style={styles.friendsContainer}>
-                {filteredFriends.map((friend: Friend) => (
-                    <TouchableOpacity key={friend.uid} style={styles.item} onPress={() => handleFriendClick(friend)}>
-                        <Text style={styles.name}>{friend.username}</Text>
-                        <View style={styles.selectionIndicatorContainer}>
-                            <View style={[styles.selectionIndicator, isSelected(friend) && styles.selected]} />
-                        </View>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
+            <View style={styles.usersContainer}>
+                <ScrollView>
+                    {filteredFriends.length === 0 ? (
+                        <Text style={styles.noFriendsText}>You currently have no friends on LetsEat!</Text>
+                    ) : (
+                        filteredFriends.map((friend: Friend) => (
+                            <TouchableOpacity key={friend.uid} style={styles.item} onPress={() => handleFriendClick(friend)}>
+                                <Image source={friend.profilePicture ? { uri: friend.profilePicture } : require('../../assets/images/defaultprofile.png')} style={styles.profilePicture} />
+                                <Text style={styles.name}>{friend.username}</Text>
+                                <View style={styles.selectionIndicatorContainer}>
+                                    <View style={[styles.selectionIndicator, isSelected(friend) && styles.selected]} />
+                                </View>
+                            </TouchableOpacity>
+                        ))
+                    )}
+                </ScrollView>
+            </View>
             <Text style={styles.subHeader}>Recommendations</Text>
             <View style={styles.recommendationsContainer}>
-                <TouchableOpacity onPress={() => setFacultyExpanded(!facultyExpanded)} style={styles.expandableHeader}>
-                    <Text style={styles.categoryHeader}>{facultyName}</Text>
-                    <Image source={require('../../assets/icons/down-arrow.png')} style={styles.downArrowIcon} />
-                </TouchableOpacity>
-                {facultyExpanded && (
-                    <View>
-                        {filteredFacultyRecommendations.map((user: Friend) => (
-                            <TouchableOpacity key={user.uid} style={styles.item} onPress={() => handleFriendClick(user)}>
-                                <Text style={styles.name}>{user.username}</Text>
-                                <View style={styles.selectionIndicatorContainer}>
-                                    <View style={[styles.selectionIndicator, isSelected(user) && styles.selected]} />
-                                </View>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                )}
-                <TouchableOpacity onPress={() => setCampusExpanded(!campusExpanded)} style={styles.expandableHeader}>
-                    <Text style={styles.categoryHeader}>{campusName}</Text>
-                    <Image source={require('../../assets/icons/down-arrow.png')} style={styles.downArrowIcon} />
-                </TouchableOpacity>
-                {campusExpanded && (
-                    <View>
-                        {filteredCampusRecommendations.map((user: Friend) => (
-                            <TouchableOpacity key={user.uid} style={styles.item} onPress={() => handleFriendClick(user)}>
-                                <Text style={styles.name}>{user.username}</Text>
-                                <View style={styles.selectionIndicatorContainer}>
-                                    <View style={[styles.selectionIndicator, isSelected(user) && styles.selected]} />
-                                </View>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                )}
+                <ScrollView>
+                    <TouchableOpacity onPress={() => setFacultyExpanded(!facultyExpanded)} style={styles.expandableHeader}>
+                        <Text style={styles.categoryHeader}>{facultyName}</Text>
+                        <Image source={require('../../assets/icons/down-arrow.png')} style={styles.downArrowIcon} />
+                    </TouchableOpacity>
+                    {facultyExpanded && (
+                        <View>
+                            {filteredFacultyRecommendations.map((user: Friend) => (
+                                <TouchableOpacity key={user.uid} style={styles.recommendationItem} onPress={() => handleFriendClick(user)}>
+                                    <Image source={user.profilePicture ? { uri: user.profilePicture } : require('../../assets/images/defaultprofile.png')} style={styles.profilePicture} />
+                                    <Text style={styles.name}>{user.username}</Text>
+                                    <View style={styles.selectionIndicatorContainer}>
+                                        <View style={[styles.selectionIndicator, isSelected(user) && styles.selected]} />
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+                    <TouchableOpacity onPress={() => setCampusExpanded(!campusExpanded)} style={styles.expandableHeader}>
+                        <Text style={styles.categoryHeader}>{campusName}</Text>
+                        <Image source={require('../../assets/icons/down-arrow.png')} style={styles.downArrowIcon} />
+                    </TouchableOpacity>
+                    {campusExpanded && (
+                        <View>
+                            {filteredCampusRecommendations.map((user: Friend) => (
+                                <TouchableOpacity key={user.uid} style={styles.recommendationItem} onPress={() => handleFriendClick(user)}>
+                                    <Image source={user.profilePicture ? { uri: user.profilePicture } : require('../../assets/images/defaultprofile.png')} style={styles.profilePicture} />
+                                    <Text style={styles.name}>{user.username}</Text>
+                                    <View style={styles.selectionIndicatorContainer}>
+                                        <View style={[styles.selectionIndicator, isSelected(user) && styles.selected]} />
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+                </ScrollView>
             </View>
             {selectedFriends.length > 0 && (
                 <View style={styles.actionsContainer}>
@@ -254,25 +275,69 @@ const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 10,
     },
-    friendsContainer: {
+    usersContainer: {
         maxHeight: 200,
         borderWidth: 2,
         borderColor: '#000',
         borderRadius: 10,
         marginBottom: 10,
     },
+    noFriendsText: {
+        fontSize: 16,
+        color: '#999',
+        textAlign: 'center',
+        padding: 20,
+    },
     item: {
         padding: 10,
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    recommendationItem: {
+        padding: 10,
+        flexDirection: 'row',
         alignItems: 'center',
     },
     name: {
         fontSize: 18,
         fontFamily: 'Poppins',
         color: '#333',
+        flex: 1,
+    },
+    profilePicture: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'black',
+        marginRight: 10,
+    },
+    categoryHeader: {
+        fontSize: 18,
+        fontFamily: 'Poppins-SemiBold',
+        color: '#fff',
+    },
+    expandableHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: '#F87171',
+        borderRadius: 5,
+        padding: 10,
+        marginVertical: 5,
+    },
+    downArrowIcon: {
+        width: 16,
+        height: 16,
+    },
+    recommendationsContainer: {
+        maxHeight: 300,
+        borderWidth: 2,
+        borderColor: '#000',
+        borderRadius: 10,
+        padding: 10,
     },
     selectionIndicatorContainer: {
         width: 20,
@@ -290,33 +355,6 @@ const styles = StyleSheet.create({
     },
     selected: {
         backgroundColor: '#F87171',
-    },
-    recommendationsContainer: {
-        maxHeight: 300,
-        borderWidth: 2,
-        borderColor: '#000',
-        borderRadius: 10,
-        padding: 10,
-    },
-    expandableHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: '#F87171',
-        borderRadius: 5,
-        padding: 10,
-        marginVertical: 5,
-    
-    },
-    categoryHeader: {
-        fontSize: 18,
-        fontFamily: 'Poppins-SemiBold',
-        color: '#fff',
-        
-    },
-    downArrowIcon: {
-        width: 16,
-        height: 16,
     },
     actionsContainer: {
         padding: 10,

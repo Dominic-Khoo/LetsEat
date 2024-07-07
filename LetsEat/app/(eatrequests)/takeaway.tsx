@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Modal, TouchableWithoutFeedback, Image } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { ref, onValue, push, set } from 'firebase/database';
+import { ref, onValue, push, set, get } from 'firebase/database';
 import { useRouter } from 'expo-router';
-import eateries from '../../eateries.json'; 
+import eateries from '../../eateries.json';
 import { FIREBASE_DB } from '../../firebaseConfig';
 
 type Friend = {
     uid: string;
     email: string;
     username: string;
+    profilePicture?: string;
 };
 
 type Eatery = {
@@ -49,13 +50,19 @@ const TakeawayScreen = () => {
         if (!currentUser) return;
 
         const friendsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/friendsList`);
-        onValue(friendsRef, (snapshot) => {
+        onValue(friendsRef, async (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                const friendsList = Object.keys(data).map(key => ({
-                    uid: key,
-                    email: data[key].email,
-                    username: data[key].username,
+                const friendsList: Friend[] = await Promise.all(Object.keys(data).map(async key => {
+                    const userRef = ref(FIREBASE_DB, `users/${key}`);
+                    const userSnapshot = await get(userRef);
+                    const userData = userSnapshot.val();
+                    return {
+                        uid: key,
+                        email: data[key].email,
+                        username: data[key].username,
+                        profilePicture: userData?.profilePicture || null,
+                    };
                 }));
                 setFriends(friendsList);
                 setFilteredFriends(friendsList); // Initialize filtered friends list
@@ -137,14 +144,21 @@ const TakeawayScreen = () => {
                 value={searchQuery}
             />
             <ScrollView style={styles.friendsContainer}>
-                {filteredFriends.map((friend: Friend) => (
-                    <TouchableOpacity key={friend.uid} style={styles.item} onPress={() => handleFriendClick(friend)}>
-                        <Text style={styles.name}>{friend.username}</Text>
-                        <View style={styles.selectionIndicatorContainer}>
-                            <View style={[styles.selectionIndicator, isSelected(friend) && styles.selected]} />
-                        </View>
-                    </TouchableOpacity>
-                ))}
+                {filteredFriends.length === 0 ? (
+                    <Text style={styles.noFriendsText}>You currently have no friends on LetsEat!</Text>
+                ) : (
+                    filteredFriends.map((friend: Friend) => (
+                        <TouchableOpacity key={friend.uid} style={styles.item} onPress={() => handleFriendClick(friend)}>
+                            <View style={styles.friendInfo}>
+                                <Image source={friend.profilePicture ? { uri: friend.profilePicture } : require('../../assets/images/defaultprofile.png')} style={styles.profilePicture} />
+                                <Text style={styles.name}>{friend.username}</Text>
+                            </View>
+                            <View style={styles.selectionIndicatorContainer}>
+                                <View style={[styles.selectionIndicator, isSelected(friend) && styles.selected]} />
+                            </View>
+                        </TouchableOpacity>
+                    ))
+                )}
             </ScrollView>
             {selectedFriends.length > 0 && (
                 <View style={styles.actionsContainer}>
@@ -218,6 +232,12 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginBottom: 10,
     },
+    noFriendsText: {
+        fontSize: 16,
+        color: '#999',
+        textAlign: 'center',
+        padding: 20,
+    },
     item: {
         padding: 10,
         borderBottomWidth: 1,
@@ -226,10 +246,22 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
+    friendInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
     name: {
         fontSize: 18,
         fontFamily: 'Poppins',
         color: '#333',
+    },
+    profilePicture: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'black',
+        marginRight: 10,
     },
     selectionIndicatorContainer: {
         width: 20,

@@ -1,4 +1,4 @@
-import { Image, View, Text, TouchableOpacity, StyleSheet, Modal} from "react-native";
+import { Image, View, Text, TouchableOpacity, StyleSheet, Modal } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect } from "react";
 import { icons } from "@/constants";
@@ -8,7 +8,6 @@ import { ref, onValue, get } from "firebase/database";
 import { FIREBASE_DB } from "../../../firebaseConfig";
 import Daily from "./components/Daily";
 import Streaks from "./components/Streaks";
-import Leaderboards from "./components/Leaderboards";
 
 const Home = () => {
   const [username, setUsername] = useState("");
@@ -130,7 +129,12 @@ const Home = () => {
           </View>
         </View>
         <Streaks />
-        <Leaderboards />
+        <TouchableOpacity
+          onPress={() => router.push("(tabs)/home/components/Leaderboards")}
+          style={styles.leaderboardsButton}
+        >
+          <Text style={styles.leaderboardsButtonText}>View Leaderboards</Text>
+        </TouchableOpacity>
       </View>
       <Modal
         animationType="slide"
@@ -188,6 +192,20 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  leaderboardsButton: {
+    backgroundColor: "black",
+    padding: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 20,
+    marginVertical: 20,
+    borderRadius: 5,
+  },
+  leaderboardsButtonText: {
+    color: "white",
+    fontFamily: "Poppins-SemiBold",
+    fontSize: 16,
   },
   modalContainer: {
     flex: 1,

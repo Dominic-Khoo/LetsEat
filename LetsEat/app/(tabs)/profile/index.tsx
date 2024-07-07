@@ -18,12 +18,13 @@ import SplashScreen from "@/components/SplashScreen"; // Import SplashScreen
 
 const Profile = () => {
   const [loading, setLoading] = useState(true); // Add loading state
-  const [username, setUsername] = useState("");
-  const [bio, setBio] = useState("");
-  const [faculty, setFaculty] = useState("");
-  const [campusAccomodation, setCampusAccomodation] = useState("");
-  const [preferredCuisine, setPreferredCuisine] = useState("");
+  const [username, setUsername] = useState<string>("");
+  const [bio, setBio] = useState<string>("");
+  const [faculty, setFaculty] = useState<string>("");
+  const [campusAccomodation, setCampusAccomodation] = useState<string>("");
+  const [preferredCuisine, setPreferredCuisine] = useState<string>("");
   const [loadingImage, setLoadingImage] = useState(true); // Add loading state
+  const [imageSource, setImageSource] = useState<string | null>(null);
 
   const user = FIREBASE_AUTH.currentUser;
 
@@ -42,10 +43,12 @@ const Profile = () => {
         }
         setLoading(false); // Set loading to false when data is loaded
       });
+
+      setImageSource(user.photoURL || null);
     } else {
       setLoading(false); // Set loading to false if no user is found
     }
-  }, []);
+  }, [user]);
 
   if (loading) {
     return <SplashScreen />; // Render SplashScreen while loading
@@ -66,9 +69,12 @@ const Profile = () => {
           {loadingImage && <ActivityIndicator size="large" color="#ff6f69" />}
           <Image
             style={styles.userImg}
-            source={user?.photoURL ? { uri: user.photoURL } : images.profile}
+            source={imageSource ? { uri: imageSource } : require('../../../assets/images/default.png')}
             onLoad={() => setLoadingImage(false)} // Set loading to false when the image loads
-            onError={() => setLoadingImage(false)} // Set loading to false if there's an error loading the image
+            onError={() => {
+              setLoadingImage(false);
+              setImageSource(null); // Set default image if there's an error loading the image
+            }}
           />
         </View>
 
@@ -138,20 +144,19 @@ const styles = StyleSheet.create({
     height: 120,
     width: 120,
     borderRadius: 75,
+    borderColor: "black", // Add black border color
+    borderWidth: 2, // Add border width
   },
-
   userBtnWrapper: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
   },
-
   imageContainer: {
     justifyContent: "center",
     alignItems: "center",
   },
-
   logoutButton: {
     backgroundColor: "#FFCACA", // Light red background color for the logout button
     padding: 10,
@@ -159,13 +164,11 @@ const styles = StyleSheet.create({
     margin: 20,
     alignItems: "center",
   },
-
   logoutText: {
     color: "#000000", // Black text color for the logout button text
     fontSize: 16,
     fontFamily: "Poppins-SemiBold",
   },
-
   userInfoWrapper: {
     flexDirection: "row",
     justifyContent: "space-around",
