@@ -54,6 +54,9 @@ const Streaks = () => {
             };
           }));
 
+          // Sort the streaks by count in descending order
+          streaksList.sort((a, b) => b.count - a.count);
+
           setStreaks(streaksList);
         } else {
           setStreaks([]);
@@ -64,11 +67,11 @@ const Streaks = () => {
     fetchStreaks();
   }, []);
 
-  const handleStreakPress = (friendUid: string, lastInteraction: string) => {
+  const handleStreakPress = (friendUid: string, lastInteraction: string, count: number) => {
     if (selectedStreak === friendUid) {
       setSelectedStreak(null);
       setTimeLeft(null);
-    } else {
+    } else if (count > 0) {
       setSelectedStreak(friendUid);
       const lastInteractionDate = new Date(lastInteraction);
       const currentDate = new Date();
@@ -85,10 +88,10 @@ const Streaks = () => {
       <ScrollView style={styles.scrollView}>
         {streaks.length > 0 ? (
           streaks.map((streak, index) => (
-            <TouchableOpacity key={index} style={styles.streakItem} onPress={() => handleStreakPress(streak.friendUid, streak.lastInteraction)}>
+            <TouchableOpacity key={index} style={styles.streakItem} onPress={() => handleStreakPress(streak.friendUid, streak.lastInteraction, streak.count)}>
               <Text style={styles.friendUsername}>{streak.friendUsername}</Text>
               <Text style={styles.streakCount}>{streak.count}</Text>
-              {selectedStreak === streak.friendUid && timeLeft && (
+              {selectedStreak === streak.friendUid && timeLeft && streak.count > 0 && (
                 <Text style={styles.timeLeftText}>{`${timeLeft.days} days, ${timeLeft.hours} hours left`}</Text>
               )}
             </TouchableOpacity>

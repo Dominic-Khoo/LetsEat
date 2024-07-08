@@ -3,15 +3,18 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'rea
 import { getAuth } from 'firebase/auth';
 import { ref, onValue, update, remove, get } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
+import { useRouter } from 'expo-router';
 
 type FriendRequest = {
     requesterUid: string;
     requesterEmail: string;
     requesterUsername: string;
+    profilePicture?: string;
 };
 
 const IncomingFriendReq = () => {
     const [requests, setRequests] = useState<FriendRequest[]>([]);
+    const router = useRouter();
 
     useEffect(() => {
         const auth = getAuth();
@@ -20,24 +23,31 @@ const IncomingFriendReq = () => {
 
         // Fetch incoming requests
         const requestsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/incomingRequests`);
-        onValue(requestsRef, (snapshot) => {
+        onValue(requestsRef, async (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 const uniqueRequests = new Set();
-                const formattedRequests = Object.keys(data).map(key => {
+                const formattedRequests = await Promise.all(Object.keys(data).map(async key => {
                     const request = data[key];
                     if (!uniqueRequests.has(request.requesterUid)) {
                         uniqueRequests.add(request.requesterUid);
+
+                        // Fetch profile picture for each requester
+                        const userRef = ref(FIREBASE_DB, `users/${request.requesterUid}`);
+                        const userSnapshot = await get(userRef);
+                        const userData = userSnapshot.val();
+
                         return {
                             requesterUid: request.requesterUid,
                             requesterEmail: request.requesterEmail,
                             requesterUsername: request.requesterUsername,
+                            profilePicture: userData?.profilePicture || null,
                         };
                     }
                     return null;
-                }).filter(request => request !== null) as FriendRequest[];
+                }));
 
-                setRequests(formattedRequests);
+                setRequests(formattedRequests.filter(request => request !== null) as FriendRequest[]);
             } else {
                 setRequests([]);
             }
@@ -145,7 +155,25 @@ const IncomingFriendReq = () => {
                     <ScrollView>
                         {requests.map((request, index) => (
                             <View key={index} style={styles.requestItem}>
-                                <Text style={styles.requestText}>{request.requesterUsername}</Text>
+                                <TouchableOpacity
+                                    style={styles.requestInfo}
+                                    onPress={() => router.push({ pathname: './social/components/PublicProfile', params: { uid: request.requesterUid } })}
+                                >
+                                    {request.profilePicture ? (
+                                        <Image
+                                            source={{ uri: request.profilePicture }}
+                                            style={styles.profilePicture}
+                                            onError={(e) => {
+                                                console.log('Error loading profile picture for', request.requesterUsername, e);
+                                            }}
+                                        />
+                                    ) : (
+                                        <View style={[styles.profilePicture, styles.defaultProfilePicture]}>
+                                            <Text style={styles.defaultProfileText}>{request.requesterUsername[0]}</Text>
+                                        </View>
+                                    )}
+                                    <Text style={styles.requestText}>{request.requesterUsername}</Text>
+                                </TouchableOpacity>
                                 <View style={styles.buttonContainer}>
                                     <TouchableOpacity style={styles.iconButton} onPress={() => acceptFriendRequest(request)}>
                                         <Image source={require('../../../../assets/icons/check-mark.png')} style={styles.icon} />
@@ -188,6 +216,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
+    requestInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
     requestText: {
         fontSize: 16,
         fontFamily: 'Poppins',
@@ -208,6 +241,24 @@ const styles = StyleSheet.create({
         width: 24,
         height: 24,
     },
+    profilePicture: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        borderWidth: 1,
+        borderColor: 'black',
+        marginRight: 10,
+    },
+    defaultProfilePicture: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#ccc',
+    },
+    defaultProfileText: {
+        fontSize: 18,
+        color: '#fff',
+    },
 });
 
 export default IncomingFriendReq;
+

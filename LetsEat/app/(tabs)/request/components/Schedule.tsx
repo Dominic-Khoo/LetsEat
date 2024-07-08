@@ -103,7 +103,7 @@ const Schedule: React.FC<ScheduleProps> = ({ refreshTrigger }) => {
     const customItem = item as CustomAgendaEntry;
 
     return (
-      <View style={[styles.item, { height: customItem.height }]}>
+      <View style={[styles.item, { height: 'auto' }]}>
         <Image source={getIconSource(customItem.icon)} style={styles.icon} />
         <View style={styles.textContainer}>
           {customItem.time && <Text style={styles.timeText}>{customItem.time}</Text>}
@@ -179,7 +179,6 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 10,
     marginTop: 17,
-    justifyContent: 'space-between',
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',
@@ -201,6 +200,7 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
     flexDirection: 'column',
+    marginRight: 10,
   },
   timeText: {
     fontSize: 16,

@@ -11,7 +11,14 @@ const HomeLayout = () => {
           
         }}
       />
+      <Stack.Screen
+        name="components/Leaderboards"
+        options ={{
+          headerShown: false,
+        }}
+      />     
     </Stack>
+
   );
 };
 
