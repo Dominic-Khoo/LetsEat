@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Modal, TouchableWithoutFeedback, Image } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { ref, onValue, push, set } from 'firebase/database';
+import { ref, onValue, push, set, get } from 'firebase/database';
 import { FIREBASE_DB } from '../../firebaseConfig';
 import { router } from 'expo-router';
 
@@ -11,6 +11,7 @@ type User = {
     username: string;
     faculty: string;
     campusAccomodation: string;
+    profilePicture?: string;
 };
 
 const OpenJioScreen = () => {
@@ -34,15 +35,21 @@ const OpenJioScreen = () => {
         if (!currentUser) return;
 
         const friendsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/friendsList`);
-        onValue(friendsRef, (snapshot) => {
+        onValue(friendsRef, async (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                const friendsList = Object.keys(data).map(key => ({
-                    uid: key,
-                    email: data[key].email,
-                    username: data[key].username,
-                    faculty: data[key].faculty || '',
-                    campusAccomodation: data[key].campusAccomodation || '',
+                const friendsList = await Promise.all(Object.keys(data).map(async key => {
+                    const userRef = ref(FIREBASE_DB, `users/${key}`);
+                    const userSnapshot = await get(userRef);
+                    const userData = userSnapshot.val();
+                    return {
+                        uid: key,
+                        email: data[key].email,
+                        username: data[key].username,
+                        faculty: userData?.faculty || '',
+                        campusAccomodation: userData?.campusAccomodation || '',
+                        profilePicture: userData?.profilePicture || null,
+                    };
                 }));
                 setFriends(friendsList);
                 setFilteredFriends(friendsList); // Initialize filtered friends list
@@ -62,15 +69,21 @@ const OpenJioScreen = () => {
                 setCampusName(campusAccomodation);
 
                 const allUsersRef = ref(FIREBASE_DB, `users`);
-                onValue(allUsersRef, (allSnapshot) => {
+                onValue(allUsersRef, async (allSnapshot) => {
                     const allUsersData = allSnapshot.val();
                     if (allUsersData) {
-                        const allUsers = Object.keys(allUsersData).map(key => ({
-                            uid: key,
-                            email: allUsersData[key].email,
-                            username: allUsersData[key].username,
-                            faculty: allUsersData[key].faculty,
-                            campusAccomodation: allUsersData[key].campusAccomodation,
+                        const allUsers = await Promise.all(Object.keys(allUsersData).map(async key => {
+                            const userRef = ref(FIREBASE_DB, `users/${key}`);
+                            const userSnapshot = await get(userRef);
+                            const userData = userSnapshot.val();
+                            return {
+                                uid: key,
+                                email: allUsersData[key].email,
+                                username: allUsersData[key].username,
+                                faculty: allUsersData[key].faculty,
+                                campusAccomodation: allUsersData[key].campusAccomodation,
+                                profilePicture: userData?.profilePicture || null,
+                            };
                         }));
 
                         const isFriend = (uid: string) => friends.some(friend => friend.uid === uid);
@@ -97,7 +110,6 @@ const OpenJioScreen = () => {
         });
     }, []);
 
-    // Update filtered friends based on search query
     const handleSearch = (query: string) => {
         setSearchQuery(query);
         if (!query) {
@@ -122,7 +134,6 @@ const OpenJioScreen = () => {
         setFilteredCampusRecommendations(filteredCampus);
     };
 
-    // Handle user click
     const handleUserClick = (user: User) => {
         if (selectedUsers.some(selectedUser => selectedUser.uid === user.uid)) {
             setSelectedUsers(selectedUsers.filter(selectedUser => selectedUser.uid !== user.uid));
@@ -131,7 +142,6 @@ const OpenJioScreen = () => {
         }
     };
 
-    // Handle sending Open Jio Request
     const sendOpenJioRequests = async () => {
         const auth = getAuth();
         const currentUser = auth.currentUser;
@@ -173,50 +183,61 @@ const OpenJioScreen = () => {
                 value={searchQuery}
             />
             <Text style={styles.subHeader}>Friends List</Text>
-            <ScrollView style={styles.usersContainer}>
-                {filteredFriends.map((friend: User) => (
-                    <TouchableOpacity key={friend.uid} style={styles.item} onPress={() => handleUserClick(friend)}>
-                        <Text style={styles.name}>{friend.username}</Text>
-                        <View style={styles.selectionIndicatorContainer}>
-                            <View style={[styles.selectionIndicator, isSelected(friend) && styles.selected]} />
-                        </View>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
+            <View style={styles.usersContainer}>
+                <ScrollView>
+                    {filteredFriends.length === 0 ? (
+                        <Text style={styles.noFriendsText}>You currently have no friends on LetsEat!</Text>
+                    ) : (
+                        filteredFriends.map((friend: User) => (
+                            <TouchableOpacity key={friend.uid} style={styles.item} onPress={() => handleUserClick(friend)}>
+                                <Image source={friend.profilePicture ? { uri: friend.profilePicture } : require('../../assets/images/defaultprofile.png')} style={styles.profilePicture} />
+                                <Text style={styles.name}>{friend.username}</Text>
+                                <View style={styles.selectionIndicatorContainer}>
+                                    <View style={[styles.selectionIndicator, isSelected(friend) && styles.selected]} />
+                                </View>
+                            </TouchableOpacity>
+                        ))
+                    )}
+                </ScrollView>
+            </View>
             <Text style={styles.subHeader}>Recommendations</Text>
             <View style={styles.recommendationsContainer}>
-                <TouchableOpacity onPress={() => setFacultyExpanded(!facultyExpanded)} style={styles.expandableHeader}>
-                    <Text style={styles.categoryHeader}>{facultyName}</Text>
-                    <Image source={require('../../assets/icons/down-arrow.png')} style={styles.downArrowIcon} />
-                </TouchableOpacity>
-                {facultyExpanded && (
-                    <View>
-                        {filteredFacultyRecommendations.map((user: User) => (
-                            <TouchableOpacity key={user.uid} style={styles.recommendationItem} onPress={() => handleUserClick(user)}>
-                                <Text style={styles.name}>{user.username}</Text>
-                                <View style={styles.selectionIndicatorContainer}>
-                                    <View style={[styles.selectionIndicator, isSelected(user) && styles.selected]} />
-                                </View>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                )}
-                <TouchableOpacity onPress={() => setCampusExpanded(!campusExpanded)} style={styles.expandableHeader}>
-                    <Text style={styles.categoryHeader}>{campusName}</Text>
-                    <Image source={require('../../assets/icons/down-arrow.png')} style={styles.downArrowIcon} />
-                </TouchableOpacity>
-                {campusExpanded && (
-                    <View>
-                        {filteredCampusRecommendations.map((user: User) => (
-                            <TouchableOpacity key={user.uid} style={styles.recommendationItem} onPress={() => handleUserClick(user)}>
-                                <Text style={styles.name}>{user.username}</Text>
-                                <View style={styles.selectionIndicatorContainer}>
-                                    <View style={[styles.selectionIndicator, isSelected(user) && styles.selected]} />
-                                </View>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                )}
+                <ScrollView>
+                    <TouchableOpacity onPress={() => setFacultyExpanded(!facultyExpanded)} style={styles.expandableHeader}>
+                        <Text style={styles.categoryHeader}>{facultyName}</Text>
+                        <Image source={require('../../assets/icons/down-arrow.png')} style={styles.downArrowIcon} />
+                    </TouchableOpacity>
+                    {facultyExpanded && (
+                        <View>
+                            {filteredFacultyRecommendations.map((user: User) => (
+                                <TouchableOpacity key={user.uid} style={styles.recommendationItem} onPress={() => handleUserClick(user)}>
+                                    <Image source={user.profilePicture ? { uri: user.profilePicture } : require('../../assets/images/defaultprofile.png')} style={styles.profilePicture} />
+                                    <Text style={styles.name}>{user.username}</Text>
+                                    <View style={styles.selectionIndicatorContainer}>
+                                        <View style={[styles.selectionIndicator, isSelected(user) && styles.selected]} />
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+                    <TouchableOpacity onPress={() => setCampusExpanded(!campusExpanded)} style={styles.expandableHeader}>
+                        <Text style={styles.categoryHeader}>{campusName}</Text>
+                        <Image source={require('../../assets/icons/down-arrow.png')} style={styles.downArrowIcon} />
+                    </TouchableOpacity>
+                    {campusExpanded && (
+                        <View>
+                            {filteredCampusRecommendations.map((user: User) => (
+                                <TouchableOpacity key={user.uid} style={styles.recommendationItem} onPress={() => handleUserClick(user)}>
+                                    <Image source={user.profilePicture ? { uri: user.profilePicture } : require('../../assets/images/defaultprofile.png')} style={styles.profilePicture} />
+                                    <Text style={styles.name}>{user.username}</Text>
+                                    <View style={styles.selectionIndicatorContainer}>
+                                        <View style={[styles.selectionIndicator, isSelected(user) && styles.selected]} />
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+                </ScrollView>
             </View>
             {selectedUsers.length > 0 && (
                 <View style={styles.actionsContainer}>
@@ -275,6 +296,9 @@ const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 10,
     },
+    scrollView: {
+        flex: 1,
+    },
     usersContainer: {
         maxHeight: 200,
         borderWidth: 2,
@@ -282,24 +306,37 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginBottom: 10,
     },
+    noFriendsText: {
+        fontSize: 16,
+        color: '#999',
+        textAlign: 'center',
+        padding: 20,
+    },
     item: {
         padding: 10,
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
     },
     recommendationItem: {
         padding: 10,
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
     },
     name: {
         fontSize: 18,
         fontFamily: 'Poppins',
         color: '#333',
+        flex: 1,
+    },
+    profilePicture: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'black',
+        marginRight: 10,
     },
     categoryHeader: {
         fontSize: 18,

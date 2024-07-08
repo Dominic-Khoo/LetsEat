@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Button } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, Alert, Share } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import eateriesData from "../../../../eateries.json";
 import imageMap from "../../../../imageMap";
 import { FIREBASE_AUTH } from "@/firebaseConfig";
-import { Alert, Share } from "react-native";
 import * as Location from "expo-location";
 import { LocationObjectCoords } from "expo-location";
 
@@ -105,8 +104,13 @@ const MapScreen: React.FC<MapScreenProps> = ({ onSelectEatery }) => {
 
   return (
     <View style={styles.container}>
-      <Button title="Update Location" onPress={fetchLocation} />
-      <Button title="Share Location" onPress={shareLocation} />
+      <TouchableOpacity style={styles.button} onPress={fetchLocation}>
+        <Text style={styles.buttonText}>Update Location</Text>
+      </TouchableOpacity>
+      <View style={styles.separator} />
+      <TouchableOpacity style={styles.button} onPress={shareLocation}>
+        <Text style={styles.buttonText}>Share Location</Text>
+      </TouchableOpacity>
 
       <MapView
         style={styles.map}
@@ -143,11 +147,27 @@ const MapScreen: React.FC<MapScreenProps> = ({ onSelectEatery }) => {
 
 const styles = StyleSheet.create({
   container: {
-    height: "60%",
+    flex: 1,
     width: "100%",
   },
   map: {
     flex: 1,
+  },
+  button: {
+    backgroundColor: "#f87171",
+    padding: 15,
+    width: "100%",
+    alignItems: "center",
+  },
+  separator: {
+    height: 3,
+    backgroundColor: "black",
+    width: "100%",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 

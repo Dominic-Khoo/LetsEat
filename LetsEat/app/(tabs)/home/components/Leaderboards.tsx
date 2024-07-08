@@ -57,7 +57,12 @@ const Leaderboards = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Leaderboards</Text>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Image source={require('../../../../assets/icons/back.png')} style={styles.backIcon} />
+        </TouchableOpacity>
+        <Text style={styles.header}>Leaderboards</Text>
+      </View>
       <ScrollView style={styles.scrollView}>
         {users.map((user, index) => (
           <View key={user.uid} style={[styles.userItem, getHighlightStyle(index)]}>
@@ -80,18 +85,34 @@ const Leaderboards = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingTop: 20,
+    backgroundColor: '#fff',
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ff6f69',
+    paddingHorizontal: 10,
+    paddingVertical: 15,
+  },
+  backButton: {
+    marginRight: 10,
+  },
+  backIcon: {
+    width: 24,
+    height: 24,
   },
   header: {
     fontSize: 24,
     fontFamily: 'Poppins-SemiBold',
-    marginBottom: 10,
+    color: 'black',
   },
   scrollView: {
     borderWidth: 2,
     borderColor: '#000',
     borderRadius: 10,
     padding: 10,
+    margin: 10,
   },
   userItem: {
     flexDirection: 'row',

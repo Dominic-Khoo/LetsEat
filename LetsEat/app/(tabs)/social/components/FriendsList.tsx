@@ -9,6 +9,7 @@ type Friend = {
     uid: string;
     email: string;
     username: string;
+    profilePicture?: string;
 };
 
 const FriendsList = () => {
@@ -29,13 +30,28 @@ const FriendsList = () => {
         onValue(friendsRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                const friendsList = Object.keys(data).map(key => ({
-                    uid: key,
-                    email: data[key].email,
-                    username: data[key].username,
-                })).sort((a, b) => a.username.localeCompare(b.username)); // Sort alphabetically
-                setFriends(friendsList);
-                setFilteredFriends(friendsList); // Initialize filtered friends
+                const friendsList = Object.keys(data).map(async key => {
+                    const friendData = {
+                        uid: key,
+                        email: data[key].email,
+                        username: data[key].username,
+                    };
+
+                    // Fetch profile picture for each friend
+                    const userRef = ref(FIREBASE_DB, `users/${key}`);
+                    const userSnapshot = await get(userRef);
+                    const userData = userSnapshot.val();
+                    return {
+                        ...friendData,
+                        profilePicture: userData?.profilePicture || null,
+                    };
+                });
+
+                Promise.all(friendsList).then(friends => {
+                    const sortedFriends = friends.sort((a, b) => a.username.localeCompare(b.username));
+                    setFriends(sortedFriends);
+                    setFilteredFriends(sortedFriends); // Initialize filtered friends
+                });
             } else {
                 setFriends([]);
                 setFilteredFriends([]);
@@ -151,6 +167,19 @@ const FriendsList = () => {
                 {filteredFriends.map((friend, index) => (
                     <View key={index}>
                         <TouchableOpacity style={styles.listItem} onPress={() => handleFriendClick(friend)}>
+                            {friend.profilePicture ? (
+                                <Image
+                                    source={{ uri: friend.profilePicture }}
+                                    style={styles.profilePicture}
+                                    onError={(e) => {
+                                        console.log('Error loading profile picture for', friend.username, e);
+                                    }}
+                                />
+                            ) : (
+                                <View style={[styles.profilePicture, styles.defaultProfilePicture]}>
+                                    <Text style={styles.defaultProfileText}>{friend.username[0]}</Text>
+                                </View>
+                            )}
                             <Text style={styles.listText}>{friend.username}</Text>
                         </TouchableOpacity>
                         {selectedFriend && selectedFriend.uid === friend.uid && tabVisible && (
@@ -223,6 +252,25 @@ const styles = StyleSheet.create({
         padding: 15,
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    profilePicture: {
+        width: 40, // Increased size for better visibility
+        height: 40,
+        borderRadius: 25,
+        borderWidth: 1,
+        borderColor: 'black',
+        marginRight: 10,
+    },
+    defaultProfilePicture: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#ccc',
+    },
+    defaultProfileText: {
+        fontSize: 18,
+        color: '#fff',
     },
     listText: {
         fontSize: 16,
@@ -261,3 +309,4 @@ const styles = StyleSheet.create({
 });
 
 export default FriendsList;
+
