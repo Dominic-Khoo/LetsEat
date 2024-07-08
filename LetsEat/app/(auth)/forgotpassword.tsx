@@ -46,8 +46,11 @@ const ForgetPasswordScreen = () => {
         textStyles={""}
       />
 
-      <Link href="/login" className="mt-10 text-l text-gray-400 text-center">
-        Back to Login
+      <Link
+        href="/login"
+        className="mt-5 text-l text-gray-500 text-center font-psemibold"
+      >
+        Back
       </Link>
     </View>
   );
