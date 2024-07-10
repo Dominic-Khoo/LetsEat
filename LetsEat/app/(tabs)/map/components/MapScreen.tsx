@@ -6,13 +6,16 @@ import {
   TouchableOpacity,
   Alert,
   Share,
+  Touchable,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import eateriesData from "../../../../eateries.json";
 import imageMap from "../../../../imageMap";
-import { FIREBASE_AUTH } from "@/firebaseConfig";
+import { FIREBASE_AUTH, FIREBASE_DB } from "@/firebaseConfig";
 import * as Location from "expo-location";
 import { LocationObjectCoords } from "expo-location";
+import { onValue, ref, set, update } from "firebase/database";
+import { router } from "expo-router";
 
 type DayOfWeek =
   | "sunday"
@@ -44,18 +47,30 @@ type MapScreenProps = {
 const MapScreen: React.FC<MapScreenProps> = ({ onSelectEatery }) => {
   const [eateries, setEateries] = useState<Eatery[]>([]);
   const [location, setLocation] = useState<LocationObjectCoords | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [users, setUsers] = useState<any[]>([]);
 
   const user = FIREBASE_AUTH.currentUser;
+  const db = FIREBASE_DB;
 
   const fetchLocation = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
       console.log("Permission to access location was denied");
+      setErrorMsg("Permission to access location was denied");
       return;
     }
 
     let location = await Location.getCurrentPositionAsync({});
     setLocation(location.coords);
+    if (user) {
+      writeUserLocation(
+        user.uid,
+        user.displayName,
+        location.coords.latitude,
+        location.coords.longitude
+      );
+    }
     console.log(location.coords);
 
     // Show an alert when the location is updated
@@ -67,6 +82,39 @@ const MapScreen: React.FC<MapScreenProps> = ({ onSelectEatery }) => {
       },
     ]);
   };
+
+  useEffect(() => {
+    const usersRef = ref(db, "users/");
+    onValue(usersRef, (snapshot) => {
+      const data = snapshot.val();
+      const usersArray = Object.keys(data).map((key) => ({
+        id: key,
+        ...data[key],
+      }));
+      setUsers(usersArray);
+    });
+  }, []);
+
+  const writeUserLocation = (
+    userId: string,
+    name: string | null,
+    latitude: number,
+    longitude: number
+  ) => {
+    update(ref(db, "users/" + userId), {
+      location: {
+        latitude: latitude,
+        longitude: longitude,
+      },
+    });
+  };
+
+  let text = "Waiting..";
+  if (errorMsg) {
+    text = errorMsg;
+  } else if (location) {
+    text = JSON.stringify(location);
+  }
 
   // Function to share the user's location
   const shareLocation = async () => {
@@ -117,6 +165,14 @@ const MapScreen: React.FC<MapScreenProps> = ({ onSelectEatery }) => {
       <TouchableOpacity style={styles.button} onPress={shareLocation}>
         <Text style={styles.buttonText}>Share Location</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => router.push("./map/components/NearbyUsersScreen")}
+      >
+        <Text style={styles.buttonText}>Show Nearby Users</Text>
+      </TouchableOpacity>
+
       <View style={{ height: 5 }} />
 
       <MapView

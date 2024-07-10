@@ -34,8 +34,8 @@ const Map = () => {
 
   return (
     <View className="flex-1">
-      <View className="bg-red-200 pt-5">
-        <Text className="text-2xl text-center h-12 font-pblack">Map</Text>
+      <View className="bg-red-200 pt-3">
+        <Text className="text-xl text-center h-10 font-pblack">Map</Text>
       </View>
       <MapScreen onSelectEatery={setSelectedEatery} />
       <EateryPopup

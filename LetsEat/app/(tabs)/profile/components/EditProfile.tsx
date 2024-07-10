@@ -19,7 +19,7 @@ import { ref as ref2, get, set, update, onValue } from "firebase/database";
 import { router } from "expo-router";
 import { updateProfile } from "firebase/auth";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
-import { images, icons } from "@/constants";
+import { images } from "@/constants";
 
 const EditProfile = () => {
   const [bio, setBio] = useState("");
@@ -108,11 +108,14 @@ const EditProfile = () => {
             preferredCuisine.length > 0
               ? preferredCuisine
               : userData.preferredCuisine,
+          location: typeof location === "string" ? location : userData.location,
         });
 
         console.log("Profile data saved successfully");
+        Alert.alert("Profile saved successfully");
       } catch (error) {
         console.log("Error saving profile data", error);
+        Alert.alert("Error saving profile data");
       }
     }
   };
@@ -288,7 +291,6 @@ const EditProfile = () => {
           style={styles.saveButton}
           onPress={() => {
             submitData();
-            Alert.alert("Profile saved successfully");
           }}
         >
           <Text style={{ fontSize: 14, fontFamily: "Poppins-SemiBold" }}>
