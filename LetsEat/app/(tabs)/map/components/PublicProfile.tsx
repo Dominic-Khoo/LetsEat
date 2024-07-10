@@ -61,7 +61,7 @@ const PublicProfile = () => {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => router.push("/social")}
+        onPress={() => router.navigate("./NearbyUsersScreen")}
       >
         <Image
           source={require("../../../../assets/icons/back.png")}

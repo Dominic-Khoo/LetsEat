@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { FIREBASE_AUTH, FIREBASE_DB } from "@/firebaseConfig";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { onValue, ref } from "firebase/database";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -27,7 +28,7 @@ const Profile = () => {
 
   const user = FIREBASE_AUTH.currentUser;
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     if (user) {
       const userRef = ref(FIREBASE_DB, `users/${user.uid}`);
       onValue(userRef, (snapshot) => {
@@ -48,6 +49,12 @@ const Profile = () => {
       setLoading(false); // Set loading to false if no user is found
     }
   }, [user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [fetchData])
+  );
 
   if (loading) {
     return <SplashScreen />; // Render SplashScreen while loading
