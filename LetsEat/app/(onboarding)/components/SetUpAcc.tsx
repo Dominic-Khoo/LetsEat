@@ -179,13 +179,6 @@ const SetUpAcc = () => {
           <Icon name="arrow-right" size={20} color="#fff" />
         </TouchableOpacity>
       </Animatable.View>
-      <View style={styles.imageContainer}>
-        <Animatable.Image
-          source={images.people}
-          style={styles.imageBottom}
-          animation="bounceIn"
-        />
-      </View>
     </View>
   );
 };

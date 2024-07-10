@@ -115,6 +115,7 @@ const UpdateImage = () => {
             profilePicture: profilePictureURL,
           });
           console.log("Profile picture saved successfully");
+          Alert.alert("Profile picture saved successfully");
         } else {
           console.log("Profile picture removed");
           updateProfile(user, {

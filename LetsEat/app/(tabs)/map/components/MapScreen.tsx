@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Text, TouchableOpacity, Alert, Share } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  Alert,
+  Share,
+} from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import eateriesData from "../../../../eateries.json";
 import imageMap from "../../../../imageMap";
@@ -107,10 +114,10 @@ const MapScreen: React.FC<MapScreenProps> = ({ onSelectEatery }) => {
       <TouchableOpacity style={styles.button} onPress={fetchLocation}>
         <Text style={styles.buttonText}>Update Location</Text>
       </TouchableOpacity>
-      <View style={styles.separator} />
       <TouchableOpacity style={styles.button} onPress={shareLocation}>
         <Text style={styles.buttonText}>Share Location</Text>
       </TouchableOpacity>
+      <View style={{ height: 5 }} />
 
       <MapView
         style={styles.map}
@@ -154,20 +161,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   button: {
-    backgroundColor: "#f87171",
-    padding: 15,
-    width: "100%",
+    backgroundColor: "#ff6f69",
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 5,
+    marginHorizontal: 10,
     alignItems: "center",
-  },
-  separator: {
-    height: 3,
-    backgroundColor: "black",
-    width: "100%",
   },
   buttonText: {
     color: "white",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "bold",
+    fontFamily: "Poppins-SemiBold",
   },
 });
 

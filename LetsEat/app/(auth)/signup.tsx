@@ -130,10 +130,10 @@ const Signup = () => {
           />
 
           <View className="flex justify-center pt-5 flex-row gap-2">
-            <Text className="text-lg text-gray-300 font-pregular">
+            <Text className="text-lg text-gray-700 font-pregular">
               Have an account already?
             </Text>
-            <Link href="/login" className="text-lg font-psemibold text-red-300">
+            <Link href="/login" className="text-lg font-psemibold text-red-400">
               Login
             </Link>
           </View>
