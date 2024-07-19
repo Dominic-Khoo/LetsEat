@@ -10,7 +10,7 @@ import {
   Image,
 } from "react-native";
 import { FIREBASE_DB, FIREBASE_AUTH } from "@/firebaseConfig";
-import { ref as ref2, onValue } from "firebase/database";
+import { ref as ref2, onValue, push, set } from "firebase/database";
 import * as Location from "expo-location";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -109,6 +109,30 @@ const NearbyUsersScreen: React.FC = () => {
     });
   };
 
+  const handleSendRequest = async (userId: string) => {
+    if (!currentUser) {
+      Alert.alert("Error", "No current user found.");
+      return;
+    }
+
+    const requestsRef = ref2(FIREBASE_DB, `users/${userId}/openJioRequests`);
+
+    const newRequest = {
+      requesterEmail: currentUser.email,
+      requesterUid: currentUser.uid,
+      requesterUsername: currentUser.displayName || "Anonymous",
+    };
+
+    try {
+      const newRequestRef = push(requestsRef);
+      await set(newRequestRef, newRequest);
+      Alert.alert("Request sent");
+    } catch (error) {
+      console.error("Error sending request:", error);
+      Alert.alert("Error", "Failed to send request.");
+    }
+  };
+
   if (errorMsg) {
     return (
       <View style={styles.container}>
@@ -142,21 +166,34 @@ const NearbyUsersScreen: React.FC = () => {
         data={nearbyUsers}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.userItem}
-            onPress={() => handleViewProfile(item.id)}
-          >
-            <Text style={styles.username}>{item.username}</Text>
-            <Text style={styles.distance}>
-              {calculateDistance(
-                currentUserLocation?.latitude ?? 0,
-                currentUserLocation?.longitude ?? 0,
-                item.location.latitude,
-                item.location.longitude
-              ).toFixed(2)}{" "}
-              km away
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.userItem}>
+            <View style={styles.userInfo}>
+              <Text style={styles.username}>{item.username}</Text>
+              <Text style={styles.distance}>
+                {calculateDistance(
+                  currentUserLocation?.latitude ?? 0,
+                  currentUserLocation?.longitude ?? 0,
+                  item.location.latitude,
+                  item.location.longitude
+                ).toFixed(2)}{" "}
+                km away
+              </Text>
+            </View>
+            <View style={styles.buttonsContainer}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => handleViewProfile(item.id)}
+              >
+                <Text style={styles.buttonText}>View Profile</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => handleSendRequest(item.id)}
+              >
+                <Text style={styles.buttonText}>Send Request</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
       />
     </View>
@@ -185,6 +222,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
   },
+  userInfo: {
+    flex: 1,
+  },
   username: {
     fontSize: 18,
     fontWeight: "bold",
@@ -192,6 +232,20 @@ const styles = StyleSheet.create({
   distance: {
     fontSize: 14,
     color: "#888",
+  },
+  buttonsContainer: {
+    paddingTop: 10,
+    flexDirection: "row",
+  },
+  button: {
+    marginLeft: 10,
+    padding: 10,
+    backgroundColor: "#ffd1df",
+    borderRadius: 3,
+  },
+  buttonText: {
+    fontSize: 13,
+    fontFamily: "Poppins",
   },
 });
 
