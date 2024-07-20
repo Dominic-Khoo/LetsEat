@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Image, TouchableOpacity, Alert } from 'react-native';
-import { Agenda, AgendaEntry, AgendaSchedule } from 'react-native-calendars';
-import { getAuth } from 'firebase/auth';
-import { ref, remove, get } from 'firebase/database';
-import { FIREBASE_DB } from '../../../../firebaseConfig';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import { Agenda, AgendaEntry, AgendaSchedule } from "react-native-calendars";
+import { getAuth } from "firebase/auth";
+import { ref, remove, get } from "firebase/database";
+import { FIREBASE_DB } from "../../../../firebaseConfig";
 
 interface CustomAgendaEntry extends AgendaEntry {
   id: string;
@@ -26,18 +34,28 @@ const Schedule: React.FC<ScheduleProps> = ({ refreshTrigger }) => {
         const eventsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/events`);
         const snapshot = await get(eventsRef);
         const data = snapshot.val();
-        const events = data ? Object.keys(data).map(key => ({ ...data[key], id: key })) as CustomAgendaEntry[] : [];
+        const events = data
+          ? (Object.keys(data).map((key) => ({
+              ...data[key],
+              id: key,
+            })) as CustomAgendaEntry[])
+          : [];
 
         const newAgenda: AgendaSchedule = {};
 
         // Convert the current date to Singapore timezone
-        const options: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Singapore', year: 'numeric', month: '2-digit', day: '2-digit' };
-        const currentDate = new Date().toLocaleDateString('en-CA', options);
+        const options: Intl.DateTimeFormatOptions = {
+          timeZone: "Asia/Singapore",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        };
+        const currentDate = new Date().toLocaleDateString("en-CA", options);
 
         // Filter events that are on or after the current date
-        const validEvents = events.filter(event => event.day >= currentDate);
+        const validEvents = events.filter((event) => event.day >= currentDate);
 
-        validEvents.forEach(event => {
+        validEvents.forEach((event) => {
           if (!newAgenda[event.day]) {
             newAgenda[event.day] = [];
           }
@@ -46,7 +64,7 @@ const Schedule: React.FC<ScheduleProps> = ({ refreshTrigger }) => {
 
         const sortedData = sortEvents(newAgenda);
         setItems(sortedData);
-        console.log('Sorted data:', sortedData);
+        console.log("Sorted data:", sortedData);
       } catch (error) {
         console.error("Error fetching events and updating agenda:", error);
       }
@@ -59,12 +77,17 @@ const Schedule: React.FC<ScheduleProps> = ({ refreshTrigger }) => {
 
   const handleRemoveEvent = async (id: string) => {
     if (currentUser) {
-      const eventRef = ref(FIREBASE_DB, `users/${currentUser.uid}/events/${id}`);
+      const eventRef = ref(
+        FIREBASE_DB,
+        `users/${currentUser.uid}/events/${id}`
+      );
       await remove(eventRef);
-      setItems(prevItems => {
+      setItems((prevItems) => {
         const newItems = { ...prevItems };
-        Object.keys(newItems).forEach(day => {
-          newItems[day] = (newItems[day] as CustomAgendaEntry[]).filter(event => event.id !== id);
+        Object.keys(newItems).forEach((day) => {
+          newItems[day] = (newItems[day] as CustomAgendaEntry[]).filter(
+            (event) => event.id !== id
+          );
         });
         return newItems;
       });
@@ -72,12 +95,12 @@ const Schedule: React.FC<ScheduleProps> = ({ refreshTrigger }) => {
   };
 
   const parseTimeString = (timeString: string): Date => {
-    const [time, modifier] = timeString.split(' ');
-    let [hours, minutes] = time.split(':').map(Number);
+    const [time, modifier] = timeString.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
 
-    if (modifier === 'PM' && hours !== 12) {
+    if (modifier === "PM" && hours !== 12) {
       hours += 12;
-    } else if (modifier === 'AM' && hours === 12) {
+    } else if (modifier === "AM" && hours === 12) {
       hours = 0;
     }
 
@@ -88,12 +111,12 @@ const Schedule: React.FC<ScheduleProps> = ({ refreshTrigger }) => {
 
   const getIconSource = (iconName: string) => {
     switch (iconName) {
-      case 'eat':
-        return require('../../../../assets/icons/eat.png');
-      case 'reserved':
-        return require('../../../../assets/icons/reserved.png');
-      case 'takeaway':
-        return require('../../../../assets/icons/takeaway.png');
+      case "eat":
+        return require("../../../../assets/icons/eat.png");
+      case "reserved":
+        return require("../../../../assets/icons/reserved.png");
+      case "takeaway":
+        return require("../../../../assets/icons/takeaway.png");
       default:
         return null;
     }
@@ -103,22 +126,31 @@ const Schedule: React.FC<ScheduleProps> = ({ refreshTrigger }) => {
     const customItem = item as CustomAgendaEntry;
 
     return (
-      <View style={[styles.item, { height: 'auto' }]}>
+      <View style={[styles.item, { height: "auto" }]}>
         <Image source={getIconSource(customItem.icon)} style={styles.icon} />
         <View style={styles.textContainer}>
-          {customItem.time && <Text style={styles.timeText}>{customItem.time}</Text>}
+          {customItem.time && (
+            <Text style={styles.timeText}>{customItem.time}</Text>
+          )}
           <Text style={styles.requestText}>{customItem.name}</Text>
         </View>
         <TouchableOpacity
           style={styles.removeIconContainer}
           onPress={() =>
-            Alert.alert('Remove Event', 'Are you sure you want to remove this event?', [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'OK', onPress: () => handleRemoveEvent(customItem.id) },
-            ])
+            Alert.alert(
+              "Remove Event",
+              "Are you sure you want to remove this event?",
+              [
+                { text: "Cancel", style: "cancel" },
+                { text: "OK", onPress: () => handleRemoveEvent(customItem.id) },
+              ]
+            )
           }
         >
-          <Image source={require('../../../../assets/icons/close.png')} style={styles.removeIcon} />
+          <Image
+            source={require("../../../../assets/icons/close.png")}
+            style={styles.removeIcon}
+          />
         </TouchableOpacity>
       </View>
     );
@@ -129,27 +161,31 @@ const Schedule: React.FC<ScheduleProps> = ({ refreshTrigger }) => {
   };
 
   const theme = {
-    selectedDayBackgroundColor: 'lightcoral',
-    dotColor: 'lightcoral',
-    agendaTodayColor: 'lightcoral',
-    todayTextColor: 'lightcoral',
+    selectedDayBackgroundColor: "lightcoral",
+    dotColor: "lightcoral",
+    agendaTodayColor: "lightcoral",
+    todayTextColor: "lightcoral",
   };
 
   const sortEvents = (data: AgendaSchedule): AgendaSchedule => {
     const sortedData: AgendaSchedule = {};
 
-    Object.keys(data).forEach(date => {
+    Object.keys(data).forEach((date) => {
       sortedData[date] = sortEventsByTime(data[date] as CustomAgendaEntry[]);
     });
 
     return sortedData;
   };
 
-  const sortEventsByTime = (events: CustomAgendaEntry[]): CustomAgendaEntry[] => {
+  const sortEventsByTime = (
+    events: CustomAgendaEntry[]
+  ): CustomAgendaEntry[] => {
     return events.sort((a, b) => {
       if (!a.time) return -1;
       if (!b.time) return 1;
-      return parseTimeString(a.time).getTime() - parseTimeString(b.time).getTime();
+      return (
+        parseTimeString(a.time).getTime() - parseTimeString(b.time).getTime()
+      );
     });
   };
 
@@ -171,17 +207,17 @@ const Schedule: React.FC<ScheduleProps> = ({ refreshTrigger }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f2',
+    backgroundColor: "#f2f2f2",
   },
   item: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 5,
     padding: 10,
     marginRight: 10,
     marginTop: 17,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 1.5,
@@ -199,16 +235,16 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
-    flexDirection: 'column',
+    flexDirection: "column",
     marginRight: 10,
   },
   timeText: {
     fontSize: 16,
-    color: '#000',
+    color: "#000",
   },
   requestText: {
     fontSize: 16,
-    color: '#000',
+    color: "#000",
   },
   removeIconContainer: {
     padding: 5,
