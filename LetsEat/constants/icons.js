@@ -14,6 +14,8 @@ import play from "../assets/icons/play.png";
 import marker from "../assets/icons/marker.png";
 import request from "../assets/icons/request.png";
 import contact from "../assets/icons/contact.png";
+import back from "../assets/icons/back.png";
+
 
 export default {
   play,
@@ -31,5 +33,6 @@ export default {
   eye,
   marker,
   request,
-  contact
+  contact,
+  back
 };
