@@ -8,6 +8,9 @@ import {
   TouchableOpacity,
   ImageBackground,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  ScrollView,
+  Alert,
 } from "react-native";
 import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
 import { FIREBASE_AUTH, storage } from "@/firebaseConfig";
@@ -105,179 +108,197 @@ const EditProfile = () => {
             preferredCuisine.length > 0
               ? preferredCuisine
               : userData.preferredCuisine,
+          location: typeof location === "string" ? location : userData.location,
         });
 
         console.log("Profile data saved successfully");
+        Alert.alert("Profile saved successfully");
       } catch (error) {
         console.log("Error saving profile data", error);
+        Alert.alert("Error saving profile data");
       }
     }
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff", paddingHorizontal: 20 }}>
-      <Text className="text-l text-center font-semibold pt-2">
-        Edit Profile
-      </Text>
-      <View style={{ alignItems: "center" }}>
-        <View style={{ height: 20 }} />
-        <Text className="p-2 text-xl text-center font-bold">
-          {user?.displayName}
-        </Text>
-        <TouchableOpacity onPress={() => router.push("./UpdateImage")}>
-          <View
-            style={{
-              height: 100,
-              width: 100,
-              borderRadius: 15,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: "#fff", paddingHorizontal: 20 }}
+    >
+      <ScrollView>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            paddingTop: 10,
+            justifyContent: "center",
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => router.navigate("/profile")}
+            style={styles.backButton}
           >
-            <ImageBackground
-              source={user?.photoURL ? { uri: user.photoURL } : images.profile}
-              style={{ height: 100, width: 100 }}
-              imageStyle={{ borderRadius: 15 }}
-              onLoadStart={() => setLoading(true)}
-              onLoadEnd={() => setLoading(false)}
-            >
-              {loading ? (
-                <ActivityIndicator size="large" color="#ff6f69" />
-              ) : (
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <MaterialCommunityIcons
-                    name="camera"
-                    size={35}
-                    color="#fff"
-                    style={{
-                      opacity: 0.7,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderWidth: 1,
-                      borderColor: "#fff",
-                      borderRadius: 10,
-                    }}
-                  />
-                </View>
-              )}
-            </ImageBackground>
-          </View>
-        </TouchableOpacity>
-        <View style={{ height: 15 }} />
-        <View style={styles.inputContainer}>
-          <TextInput
-            placeholder="Bio"
-            placeholderTextColor="#888"
-            value={bio}
-            onChangeText={setBio}
-            style={styles.input}
-          />
-
-          <View style={styles.underline} />
+            <Image
+              source={require("../../../../assets/icons/back.png")}
+              style={styles.backIcon}
+            />
+          </TouchableOpacity>
+          <Text className="text-l text-center font-semibold">Edit Profile</Text>
         </View>
-      </View>
-
-      <Text className="text-l text-left font-semibold pt-3">
-        Other Information
-      </Text>
-
-      <View style={{ height: 15 }} />
-
-      <Dropdown
-        style={[styles.dropdown, isFocus && { borderColor: "#ff6f69" }]}
-        placeholderStyle={styles.placeholderStyle}
-        selectedTextStyle={styles.selectedTextStyle}
-        inputSearchStyle={styles.inputSearchStyle}
-        iconStyle={styles.iconStyle}
-        data={dataFaculty}
-        search
-        maxHeight={300}
-        labelField="label"
-        valueField="value"
-        placeholder={!isFocus ? "Faculty" : "..."}
-        searchPlaceholder="Search..."
-        value={faculty}
-        onFocus={() => setIsFocus(true)}
-        onBlur={() => setIsFocus(false)}
-        onChange={(item) => {
-          setFaculty(item.value);
-          setFacultyLabel(item.label);
-          setIsFocus(false);
-        }}
-      />
-      <View style={{ height: 15 }} />
-
-      <Dropdown
-        style={[styles.dropdown, isFocus2 && { borderColor: "#ff6f69" }]}
-        placeholderStyle={styles.placeholderStyle}
-        selectedTextStyle={styles.selectedTextStyle}
-        inputSearchStyle={styles.inputSearchStyle}
-        iconStyle={styles.iconStyle}
-        data={dataAccoms}
-        search
-        maxHeight={300}
-        labelField="label"
-        valueField="value"
-        placeholder={!isFocus2 ? "Campus Accomodation" : "..."}
-        searchPlaceholder="Search..."
-        value={campusAccomodation}
-        onFocus={() => setIsFocus2(true)}
-        onBlur={() => setIsFocus2(false)}
-        onChange={(item) => {
-          setCampusAccomodation(item.value);
-          setCampusAccomodationLabel(item.label);
-          setIsFocus2(false);
-        }}
-      />
-
-      <View style={{ height: 15 }} />
-      <MultiSelect
-        style={styles.multiselect}
-        placeholderStyle={styles.placeholderStyle}
-        selectedTextStyle={styles.selectedTextStyle}
-        iconStyle={styles.iconStyle}
-        data={dataCuisine}
-        labelField="label"
-        valueField="value"
-        placeholder="Preferred cuisines"
-        value={preferredCuisine}
-        onChange={(item) => {
-          setPreferredCuisine(item);
-        }}
-        renderSelectedItem={(item, unSelect) => (
-          <TouchableOpacity onPress={() => unSelect && unSelect(item)}>
-            <View style={styles.selectedStyle}>
-              <Text style={styles.textSelectedStyle}>{item.label}</Text>
-              <AntDesign color="black" name="delete" size={17} />
+        <View style={{ alignItems: "center" }}>
+          <View style={{ height: 20 }} />
+          <Text className="p-2 text-xl text-center font-bold">
+            {user?.displayName}
+          </Text>
+          <TouchableOpacity onPress={() => router.push("./UpdateImage")}>
+            <View
+              style={{
+                height: 100,
+                width: 100,
+                borderRadius: 15,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ImageBackground
+                source={
+                  user?.photoURL ? { uri: user.photoURL } : images.profile
+                }
+                style={{ height: 100, width: 100 }}
+                imageStyle={{ borderRadius: 15 }}
+                onLoadStart={() => setLoading(true)}
+                onLoadEnd={() => setLoading(false)}
+              >
+                {loading ? (
+                  <ActivityIndicator size="large" color="#ff6f69" />
+                ) : (
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <MaterialCommunityIcons
+                      name="camera"
+                      size={35}
+                      color="#fff"
+                      style={{
+                        opacity: 0.7,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderWidth: 1,
+                        borderColor: "#fff",
+                        borderRadius: 10,
+                      }}
+                    />
+                  </View>
+                )}
+              </ImageBackground>
             </View>
           </TouchableOpacity>
-        )}
-      />
-      <View style={{ height: 50 }} />
-      <TouchableOpacity
-        style={styles.saveButton}
-        onPress={() => {
-          submitData();
-        }}
-      >
-        <Text style={{ fontSize: 14, fontFamily: "Poppins-SemiBold" }}>
-          Save Profile
-        </Text>
-      </TouchableOpacity>
+          <View style={{ height: 15 }} />
+          <View style={styles.inputContainer}>
+            <TextInput
+              placeholder="Bio"
+              placeholderTextColor="#888"
+              value={bio}
+              onChangeText={setBio}
+              style={styles.input}
+            />
 
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => router.navigate("/profile")}
-      >
-        <Text style={{ fontSize: 13, color: "#66545e" }}>Back</Text>
-      </TouchableOpacity>
-    </View>
+            <View style={styles.underline} />
+          </View>
+        </View>
+
+        <Text className="text-l text-left font-semibold pt-3">
+          Other Information
+        </Text>
+
+        <View style={{ height: 15 }} />
+
+        <Dropdown
+          style={[styles.dropdown, isFocus && { borderColor: "#ff6f69" }]}
+          placeholderStyle={styles.placeholderStyle}
+          selectedTextStyle={styles.selectedTextStyle}
+          inputSearchStyle={styles.inputSearchStyle}
+          iconStyle={styles.iconStyle}
+          data={dataFaculty}
+          search
+          maxHeight={300}
+          labelField="label"
+          valueField="value"
+          placeholder={!isFocus ? "Faculty" : "..."}
+          searchPlaceholder="Search..."
+          value={faculty}
+          onFocus={() => setIsFocus(true)}
+          onBlur={() => setIsFocus(false)}
+          onChange={(item) => {
+            setFaculty(item.value);
+            setFacultyLabel(item.label);
+            setIsFocus(false);
+          }}
+        />
+        <View style={{ height: 15 }} />
+
+        <Dropdown
+          style={[styles.dropdown, isFocus2 && { borderColor: "#ff6f69" }]}
+          placeholderStyle={styles.placeholderStyle}
+          selectedTextStyle={styles.selectedTextStyle}
+          inputSearchStyle={styles.inputSearchStyle}
+          iconStyle={styles.iconStyle}
+          data={dataAccoms}
+          search
+          maxHeight={300}
+          labelField="label"
+          valueField="value"
+          placeholder={!isFocus2 ? "Campus Accomodation" : "..."}
+          searchPlaceholder="Search..."
+          value={campusAccomodation}
+          onFocus={() => setIsFocus2(true)}
+          onBlur={() => setIsFocus2(false)}
+          onChange={(item) => {
+            setCampusAccomodation(item.value);
+            setCampusAccomodationLabel(item.label);
+            setIsFocus2(false);
+          }}
+        />
+
+        <View style={{ height: 15 }} />
+        <MultiSelect
+          style={styles.multiselect}
+          placeholderStyle={styles.placeholderStyle}
+          selectedTextStyle={styles.selectedTextStyle}
+          iconStyle={styles.iconStyle}
+          data={dataCuisine}
+          labelField="label"
+          valueField="value"
+          placeholder="Preferred cuisines"
+          value={preferredCuisine}
+          onChange={(item) => {
+            setPreferredCuisine(item);
+          }}
+          renderSelectedItem={(item, unSelect) => (
+            <TouchableOpacity onPress={() => unSelect && unSelect(item)}>
+              <View style={styles.selectedStyle}>
+                <Text style={styles.textSelectedStyle}>{item.label}</Text>
+                <AntDesign color="black" name="delete" size={17} />
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+        <View style={{ height: 50 }} />
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={() => {
+            submitData();
+          }}
+        >
+          <Text style={{ fontSize: 14, fontFamily: "Poppins-SemiBold" }}>
+            Save Profile
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -361,10 +382,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   backButton: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 10,
-    alignItems: "center",
+    position: "absolute",
+    left: 0,
+  },
+
+  backIcon: {
+    width: 18,
+    height: 16,
   },
 
   saveButton: {

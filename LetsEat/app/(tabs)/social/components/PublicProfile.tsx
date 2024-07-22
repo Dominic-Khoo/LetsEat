@@ -38,7 +38,8 @@ const PublicProfile = () => {
           if (data.username) setUsername(data.username);
           if (data.bio) setBio(data.bio);
           if (data.faculty) setFaculty(data.faculty);
-          if (data.campusAccomodation) setCampusAccomodation(data.campusAccomodation);
+          if (data.campusAccomodation)
+            setCampusAccomodation(data.campusAccomodation);
           if (data.preferredCuisine) setPreferredCuisine(data.preferredCuisine);
           if (data.profilePicture) {
             setProfilePicture(data.profilePicture);
@@ -58,8 +59,14 @@ const PublicProfile = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Image source={require('../../../../assets/icons/back.png')} style={styles.backIcon} />
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.push("/social")}
+      >
+        <Image
+          source={require("../../../../assets/icons/back.png")}
+          style={styles.backIcon}
+        />
       </TouchableOpacity>
       <ScrollView
         style={styles.container}
@@ -116,9 +123,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   backButton: {
-    position: 'absolute',
-    top: 5,
-    left: 5,
+    position: "absolute",
+    top: 8,
+    left: 20,
     zIndex: 1,
   },
   backIcon: {

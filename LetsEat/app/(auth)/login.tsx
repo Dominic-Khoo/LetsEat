@@ -6,6 +6,7 @@ import {
   Text,
   Dimensions,
   Alert,
+  KeyboardAvoidingView,
 } from "react-native";
 import React, { useState } from "react";
 import { FIREBASE_AUTH } from "../../firebaseConfig";
@@ -48,7 +49,7 @@ const Login = () => {
   };
 
   return (
-    <SafeAreaView className="bg-white">
+    <KeyboardAvoidingView className="bg-white">
       <ScrollView>
         <View
           className="w-full h-full px-4 my-6"
@@ -83,7 +84,7 @@ const Login = () => {
           <View>
             <Link
               href="/forgotpassword"
-              className="text-m text-right pt-2 text-gray-400"
+              className="text-m font-pregular text-right pt-2 text-gray-600"
             >
               Forgot Password?
             </Link>
@@ -98,19 +99,19 @@ const Login = () => {
           />
 
           <View className="flex justify-center pt-5 flex-row gap-2">
-            <Text className="text-lg text-gray-300 font-pregular">
+            <Text className="text-lg text-gray-700 font-pregular">
               Don't have an account?
             </Text>
             <Link
               href="/signup"
-              className="text-lg font-psemibold text-red-300"
+              className="text-lg font-psemibold text-red-400"
             >
               Signup
             </Link>
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 

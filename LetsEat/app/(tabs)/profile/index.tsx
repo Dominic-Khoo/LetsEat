@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { FIREBASE_AUTH, FIREBASE_DB } from "@/firebaseConfig";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { getAuth } from "firebase/auth";
 import { onValue, ref, set } from "firebase/database";
@@ -30,7 +31,7 @@ const Profile = () => {
 
   const user = FIREBASE_AUTH.currentUser;
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     if (user) {
       const userRef = ref(FIREBASE_DB, `users/${user.uid}`);
       onValue(userRef, (snapshot) => {
@@ -68,6 +69,12 @@ const Profile = () => {
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [fetchData])
+  );
+
   if (loading) {
     return <SplashScreen />; // Render SplashScreen while loading
   }
@@ -82,12 +89,16 @@ const Profile = () => {
         }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={{ height: 30 }} />
+        <View style={{ height: 20 }} />
         <View style={styles.imageContainer}>
           {loadingImage && <ActivityIndicator size="large" color="#ff6f69" />}
           <Image
             style={styles.userImg}
-            source={imageSource ? { uri: imageSource } : require('../../../assets/images/default.png')}
+            source={
+              imageSource
+                ? { uri: imageSource }
+                : require("../../../assets/images/default.png")
+            }
             onLoad={() => setLoadingImage(false)} // Set loading to false when the image loads
             onError={() => {
               setLoadingImage(false);
@@ -210,9 +221,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     width: "80%",
     borderRadius: 5,
-    margin: 10,
+    margin: 5,
     backgroundColor: "#ff6f69",
-    padding: 15,
+    padding: 12,
     shadowOpacity: 0.2,
   },
   userInfoItem: {
@@ -240,15 +251,16 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   achievementsButton: {
-    backgroundColor: "#ff6f69",
+    backgroundColor: "#FFCACA",
     padding: 10,
     borderRadius: 8,
+    margin: 14,
     alignItems: "center",
     flex: 1,
     marginRight: 10,
   },
   achievementsText: {
-    color: "#fff",
+    color: "#000",
     fontSize: 16,
     fontFamily: "Poppins-SemiBold",
   },

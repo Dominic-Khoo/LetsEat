@@ -9,6 +9,7 @@ import {
   Alert,
   TouchableOpacity,
   Text,
+  ActivityIndicator,
 } from "react-native";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { FIREBASE_AUTH, storage } from "@/firebaseConfig";
@@ -115,6 +116,8 @@ const UpdateImage = () => {
             profilePicture: profilePictureURL,
           });
           console.log("Profile picture saved successfully");
+          Alert.alert("Profile picture saved successfully");
+          setProfilePicture(profilePictureURL);
         } else {
           console.log("Profile picture removed");
           updateProfile(user, {
@@ -133,8 +136,10 @@ const UpdateImage = () => {
     <View style={styles.container}>
       <StatusBar style="light" />
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        {profilePicture && (
+        {profilePicture ? (
           <Image source={{ uri: profilePicture }} style={styles.image} />
+        ) : (
+          <View style={styles.imagePlaceholder} />
         )}
 
         <View style={{ height: 25 }} />
@@ -176,7 +181,11 @@ const UpdateImage = () => {
           }}
           disabled={loading}
         >
-          <Text style={{ fontWeight: "bold", fontSize: 20 }}>Save</Text>
+          {loading ? (
+            <ActivityIndicator size="small" color="#000fff" />
+          ) : (
+            <Text style={{ fontWeight: "bold", fontSize: 20 }}>Save</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
