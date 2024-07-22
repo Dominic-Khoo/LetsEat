@@ -12,6 +12,7 @@ type User = {
     faculty: string;
     campusAccomodation: string;
     profilePicture?: string;
+    status?: string;
 };
 
 const OpenJioScreen = () => {
@@ -83,6 +84,7 @@ const OpenJioScreen = () => {
                                 faculty: allUsersData[key].faculty,
                                 campusAccomodation: allUsersData[key].campusAccomodation,
                                 profilePicture: userData?.profilePicture || null,
+                                status: allUsersData[key].status || 'closed',
                             };
                         }));
 
@@ -91,13 +93,15 @@ const OpenJioScreen = () => {
                         const facultyRecommendedUsers = allUsers.filter(user =>
                             user.faculty === faculty &&
                             !isFriend(user.uid) &&
-                            user.uid !== currentUser.uid
+                            user.uid !== currentUser.uid &&
+                            user.status === 'open'
                         );
 
                         const campusRecommendedUsers = allUsers.filter(user =>
                             user.campusAccomodation === campusAccomodation &&
                             !isFriend(user.uid) &&
-                            user.uid !== currentUser.uid
+                            user.uid !== currentUser.uid &&
+                            user.status === 'open'
                         );
 
                         setFacultyRecommendations(facultyRecommendedUsers);
