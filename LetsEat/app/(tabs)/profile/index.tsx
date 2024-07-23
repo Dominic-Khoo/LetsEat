@@ -12,9 +12,11 @@ import {
 import { FIREBASE_AUTH, FIREBASE_DB } from "@/firebaseConfig";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import { onValue, ref } from "firebase/database";
+import { getAuth } from "firebase/auth";
+import { onValue, ref, set } from "firebase/database";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SplashScreen from "@/components/SplashScreen"; // Import SplashScreen
+import Slider from '@react-native-community/slider'; // Import Slider
 
 const Profile = () => {
   const [loading, setLoading] = useState(true); // Add loading state
@@ -25,6 +27,7 @@ const Profile = () => {
   const [preferredCuisine, setPreferredCuisine] = useState<string>("");
   const [loadingImage, setLoadingImage] = useState(true); // Add loading state
   const [imageSource, setImageSource] = useState<string | null>(null);
+  const [status, setStatus] = useState<number>(1); // Default to 1 (Open to Strangers)
 
   const user = FIREBASE_AUTH.currentUser;
 
@@ -40,6 +43,12 @@ const Profile = () => {
           if (data.campusAccomodation)
             setCampusAccomodation(data.campusAccomodation);
           if (data.preferredCuisine) setPreferredCuisine(data.preferredCuisine);
+          if (data.status !== undefined) {
+            setStatus(data.status === 'open' ? 1 : 0);
+          } else {
+            // Set default status to open if not already set
+            set(userRef, { ...data, status: 'open' });
+          }
         }
         setLoading(false); // Set loading to false when data is loaded
       });
@@ -49,6 +58,16 @@ const Profile = () => {
       setLoading(false); // Set loading to false if no user is found
     }
   }, [user]);
+
+  const handleStatusChange = (value: number) => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      const statusRef = ref(FIREBASE_DB, `users/${currentUser.uid}/status`);
+      set(statusRef, value === 1 ? 'open' : 'closed');
+      setStatus(value);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -132,12 +151,30 @@ const Profile = () => {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.achievementsButton}
-          onPress={() => router.push("./profile/components/Achievements")}
-        >
-          <Text style={styles.achievementsText}>View Achievements</Text>
-        </TouchableOpacity>
+        <View style={styles.actionsContainer}>
+          <TouchableOpacity
+            style={styles.achievementsButton}
+            onPress={() => router.push("./profile/components/Achievements")}
+          >
+            <Text style={styles.achievementsText}>View Achievements</Text>
+          </TouchableOpacity>
+          <View style={styles.sliderContainer}>
+            <Text style={styles.sliderText}>
+              {status === 1 ? 'Open to Strangers' : 'Not Open to Strangers'}
+            </Text>
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={1}
+              step={1}
+              value={status}
+              onValueChange={handleStatusChange}
+              minimumTrackTintColor="#FF6F69"
+              maximumTrackTintColor="#FF6F69"
+              thumbTintColor="#FF6F69"
+            />
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -206,16 +243,38 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "Poppins-Regular",
   },
+  actionsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "90%",
+    marginVertical: 20,
+  },
   achievementsButton: {
     backgroundColor: "#FFCACA",
     padding: 10,
     borderRadius: 8,
     margin: 14,
     alignItems: "center",
+    flex: 1,
+    marginRight: 10,
   },
   achievementsText: {
     color: "#000",
     fontSize: 16,
     fontFamily: "Poppins-SemiBold",
+  },
+  sliderContainer: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  sliderText: {
+    fontSize: 12,
+    fontFamily: "Poppins-SemiBold",
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  slider: {
+    width: 100,
   },
 });
