@@ -16,7 +16,7 @@ import { getAuth } from "firebase/auth";
 import { onValue, ref, set } from "firebase/database";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SplashScreen from "@/components/SplashScreen"; // Import SplashScreen
-import Slider from '@react-native-community/slider'; // Import Slider
+import Slider from "@react-native-community/slider"; // Import Slider
 
 const Profile = () => {
   const [loading, setLoading] = useState(true); // Add loading state
@@ -44,10 +44,10 @@ const Profile = () => {
             setCampusAccomodation(data.campusAccomodation);
           if (data.preferredCuisine) setPreferredCuisine(data.preferredCuisine);
           if (data.status !== undefined) {
-            setStatus(data.status === 'open' ? 1 : 0);
+            setStatus(data.status === "open" ? 1 : 0);
           } else {
             // Set default status to open if not already set
-            set(userRef, { ...data, status: 'open' });
+            set(userRef, { ...data, status: "open" });
           }
         }
         setLoading(false); // Set loading to false when data is loaded
@@ -64,7 +64,7 @@ const Profile = () => {
     const currentUser = auth.currentUser;
     if (currentUser) {
       const statusRef = ref(FIREBASE_DB, `users/${currentUser.uid}/status`);
-      set(statusRef, value === 1 ? 'open' : 'closed');
+      set(statusRef, value === 1 ? "open" : "closed");
       setStatus(value);
     }
   };
@@ -160,7 +160,7 @@ const Profile = () => {
           </TouchableOpacity>
           <View style={styles.sliderContainer}>
             <Text style={styles.sliderText}>
-              {status === 1 ? 'Open to Strangers' : 'Not Open to Strangers'}
+              {status === 1 ? "Open to Strangers" : "Not Open to Strangers"}
             </Text>
             <Slider
               style={styles.slider}
@@ -261,18 +261,18 @@ const styles = StyleSheet.create({
   },
   achievementsText: {
     color: "#000",
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Poppins-SemiBold",
   },
   sliderContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
   sliderText: {
     fontSize: 12,
     fontFamily: "Poppins-SemiBold",
     marginBottom: 5,
-    textAlign: 'center',
+    textAlign: "center",
   },
   slider: {
     width: 100,

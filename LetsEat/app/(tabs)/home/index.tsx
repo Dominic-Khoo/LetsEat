@@ -1,5 +1,12 @@
-import { Image, View, Text, TouchableOpacity, StyleSheet, Modal } from "react-native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  Image,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState, useEffect } from "react";
 import { icons } from "@/constants";
 import { router } from "expo-router";
@@ -8,6 +15,7 @@ import { ref, onValue, get } from "firebase/database";
 import { FIREBASE_DB } from "../../../firebaseConfig";
 import Daily from "./components/Daily";
 import Streaks from "./components/Streaks";
+import AvailabilitySlider from "./components/AvailabilitySlider";
 
 const Home = () => {
   const [username, setUsername] = useState("");
@@ -20,12 +28,12 @@ const Home = () => {
     const currentUser = auth.currentUser;
 
     const checkModalStatus = async () => {
-      const modalShown = await AsyncStorage.getItem('modalShown');
-      return modalShown === 'true';
+      const modalShown = await AsyncStorage.getItem("modalShown");
+      return modalShown === "true";
     };
 
     const setModalStatus = async () => {
-      await AsyncStorage.setItem('modalShown', 'true');
+      await AsyncStorage.setItem("modalShown", "true");
     };
 
     if (currentUser) {
@@ -38,23 +46,30 @@ const Home = () => {
       });
 
       const checkRequests = async (path: string) => {
-        const requestsRef = ref(FIREBASE_DB, `users/${currentUser.uid}/${path}`);
+        const requestsRef = ref(
+          FIREBASE_DB,
+          `users/${currentUser.uid}/${path}`
+        );
         const snapshot = await get(requestsRef);
         if (snapshot.exists()) {
           const requestData = snapshot.val();
-          const uniqueRequesters = new Set(Object.values(requestData).map((request: any) => request.requesterUid));
+          const uniqueRequesters = new Set(
+            Object.values(requestData).map(
+              (request: any) => request.requesterUid
+            )
+          );
           const requestCount = uniqueRequesters.size;
           if (requestCount > 0) {
             setHasRequests(true);
-            setUniqueRequestCount(prevCount => prevCount + requestCount);
+            setUniqueRequestCount((prevCount) => prevCount + requestCount);
           }
         }
       };
 
       const fetchRequests = async () => {
-        await checkRequests('openJioRequests');
-        await checkRequests('bookingRequests');
-        await checkRequests('takeawayRequests');
+        await checkRequests("openJioRequests");
+        await checkRequests("bookingRequests");
+        await checkRequests("takeawayRequests");
 
         const modalAlreadyShown = await checkModalStatus();
         if (!modalAlreadyShown) {
@@ -124,7 +139,10 @@ const Home = () => {
               >
                 Places to makan
               </Text>
-              <Image source={require('../../../assets/icons/placeholder.png')} style={{ width: 28, height: 28 }} />
+              <Image
+                source={require("../../../assets/icons/placeholder.png")}
+                style={{ width: 28, height: 28 }}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -135,6 +153,7 @@ const Home = () => {
         >
           <Text style={styles.leaderboardsButtonText}>View Leaderboards</Text>
         </TouchableOpacity>
+        <AvailabilitySlider />
       </View>
       <Modal
         animationType="slide"
@@ -147,7 +166,9 @@ const Home = () => {
             <Text style={styles.modalHeader}>Welcome back, {username}!</Text>
             {uniqueRequestCount > 0 ? (
               <>
-                <Text style={styles.modalText}>You have {uniqueRequestCount} incoming requests!</Text>
+                <Text style={styles.modalText}>
+                  You have {uniqueRequestCount} incoming requests!
+                </Text>
                 <TouchableOpacity
                   onPress={() => {
                     setModalVisible(false);
@@ -160,7 +181,9 @@ const Home = () => {
               </>
             ) : (
               <>
-                <Text style={styles.modalText}>You have no incoming requests, let's go makan with someone!</Text>
+                <Text style={styles.modalText}>
+                  You have no incoming requests, let's go makan with someone!
+                </Text>
                 <TouchableOpacity
                   onPress={() => setModalVisible(false)}
                   style={styles.modalButton}
@@ -178,20 +201,20 @@ const Home = () => {
 
 const styles = StyleSheet.create({
   exclamationContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: -10,
     right: -10,
-    backgroundColor: 'red',
+    backgroundColor: "red",
     borderRadius: 10,
     width: 20,
     height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   exclamationText: {
-    color: 'white',
+    color: "white",
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   leaderboardsButton: {
     backgroundColor: "black",
@@ -209,38 +232,38 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 20,
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalText: {
     fontSize: 18,
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   modalHeader: {
     fontSize: 18,
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: "Poppins-SemiBold",
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   modalButton: {
-    backgroundColor: '#F87171',
+    backgroundColor: "#F87171",
     padding: 10,
     borderRadius: 5,
     marginTop: 10,
   },
   modalButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: "Poppins-SemiBold",
   },
 });
 
