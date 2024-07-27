@@ -84,10 +84,9 @@ const Home = () => {
 
   return (
     <View className="flex-1 bg-white">
-      <View className="bg-red-400 pt-5 pl-2 pr-2 pb-2">
-        <Text className="text-2xl text-left pl-3 font-pblack">
-          Hi, {username}!
-        </Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.greetingText}>Hi, {username}!</Text>
+        <AvailabilitySlider />
       </View>
       <View className="flex-1">
         <Daily />
@@ -153,7 +152,6 @@ const Home = () => {
         >
           <Text style={styles.leaderboardsButtonText}>View Leaderboards</Text>
         </TouchableOpacity>
-        <AvailabilitySlider />
       </View>
       <Modal
         animationType="slide"
@@ -200,6 +198,18 @@ const Home = () => {
 };
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#F87171",
+    paddingLeft: 20,
+  },
+  greetingText: {
+    fontSize: 24,
+    fontFamily: "Poppins-Black",
+    color: "black",
+  },
   exclamationContainer: {
     position: "absolute",
     top: -10,

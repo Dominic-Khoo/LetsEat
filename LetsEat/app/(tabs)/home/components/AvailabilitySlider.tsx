@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Switch, Text } from "react-native";
+import { View, Switch, Text, StyleSheet } from "react-native";
 import { FIREBASE_DB } from "@/firebaseConfig";
 import { ref, onValue, update } from "firebase/database";
 import { getAuth } from "firebase/auth";
@@ -47,11 +47,35 @@ const AvailabilitySlider = () => {
   }
 
   return (
-    <View>
-      <Text>{isAvailable ? "Available to eat" : "Not available to eat"}</Text>
-      <Switch onValueChange={toggleSwitch} value={isAvailable} />
+    <View style={styles.container}>
+      <Text style={styles.label}>Available</Text>
+      <Switch
+        trackColor={{ false: "#767577", true: "#81b0ff" }}
+        thumbColor={isAvailable ? "#f5dd4b" : "#f4f3f4"}
+        onValueChange={toggleSwitch}
+        value={isAvailable}
+      />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 15,
+    backgroundColor: "#F87171",
+    borderRadius: 5,
+    marginHorizontal: 20,
+    marginVertical: 10,
+  },
+  label: {
+    fontSize: 16,
+    fontFamily: "Poppins-SemiBold",
+    color: "white",
+    marginRight: 10,
+  },
+});
 
 export default AvailabilitySlider;
