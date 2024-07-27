@@ -152,6 +152,12 @@ const Home = () => {
         >
           <Text style={styles.leaderboardsButtonText}>View Leaderboards</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => router.push("(tabs)/home/components/EventHistory")}
+          style={styles.eventHistoryButton}
+        >
+          <Text style={styles.eventHistoryButtonText}>Event History</Text>
+        </TouchableOpacity>
       </View>
       <Modal
         animationType="slide"
@@ -236,6 +242,20 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   leaderboardsButtonText: {
+    color: "white",
+    fontFamily: "Poppins-SemiBold",
+    fontSize: 16,
+  },
+  eventHistoryButton: {
+    backgroundColor: "#F87171",
+    padding: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 20,
+    marginVertical: 10,
+    borderRadius: 5,
+  },
+  eventHistoryButtonText: {
     color: "white",
     fontFamily: "Poppins-SemiBold",
     fontSize: 16,

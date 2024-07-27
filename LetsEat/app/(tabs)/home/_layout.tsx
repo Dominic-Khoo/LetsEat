@@ -17,6 +17,12 @@ const HomeLayout = () => {
           headerShown: false,
         }}
       />     
+      <Stack.Screen
+        name="components/EventHistory"
+        options = {{
+          headerShown: false,
+        }}
+      />
     </Stack>
 
   );

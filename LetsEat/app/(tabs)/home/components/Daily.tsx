@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { ref, onValue, off, set, update, get, remove } from 'firebase/database';
+import { ref, onValue, off, set, update, get, remove, push } from 'firebase/database';
 import { FIREBASE_DB } from '../../../../firebaseConfig';
 
 interface Event {
@@ -131,6 +131,12 @@ const Daily = () => {
 
     if (partnerEvent && partnerEvent.confirmedByUser) {
       // Both users have confirmed
+
+      // Save to event history
+      await saveToEventHistory(currentUser.uid, event);
+      await saveToEventHistory(partnerUid, partnerEvent);
+
+      // Update streaks
       await updateStreaks(currentUser.uid, partnerUid);
       await updateStreaks(partnerUid, currentUser.uid);
       
@@ -151,6 +157,17 @@ const Daily = () => {
       await update(ref(FIREBASE_DB, `users/${partnerUid}/events/${partnerEventKey}`), { confirmedByPartner: true });
       await update(eventRef, { confirmedByUser: true });
     }
+  };
+
+  const saveToEventHistory = async (userUid: string, event: Event) => {
+    const eventHistoryRef = ref(FIREBASE_DB, `users/${userUid}/eventHistory`);
+    const newEventRef = push(eventHistoryRef);
+    await set(newEventRef, {
+      ...event,
+      confirmedByUser: true,
+      confirmedByPartner: true,
+      timestamp: Date.now(),
+    });
   };
 
   const updateStreaks = async (currentUserUid: string, partnerUid: string) => {
