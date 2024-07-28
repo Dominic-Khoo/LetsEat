@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState, useEffect } from "react";
@@ -83,12 +84,12 @@ const Home = () => {
   }, []);
 
   return (
-    <View className="flex-1 bg-white">
+    <ScrollView style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={styles.headerContainer}>
         <Text style={styles.greetingText}>Hi, {username}!</Text>
         <AvailabilitySlider />
       </View>
-      <View className="flex-1">
+      <View>
         <Daily />
         <View className="pl-2 pr-2"></View>
         <View className="flex-2 flex-row justify-space-between">
@@ -199,7 +200,7 @@ const Home = () => {
           </View>
         </View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 };
 

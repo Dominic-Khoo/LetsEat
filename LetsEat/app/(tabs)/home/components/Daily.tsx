@@ -39,13 +39,11 @@ const Daily = () => {
             id: key,
           }));
 
-          // Convert the current date to Singapore timezone
           const options: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Singapore', year: 'numeric', month: '2-digit', day: '2-digit' };
           const currentDate = new Date().toLocaleDateString('en-CA', options);
 
           const todaysEvents = eventsList.filter(event => event.day === currentDate);
 
-          // Sort Booking events by time
           const sortedEvents = sortEventsByTime(todaysEvents);
 
           setEvents(sortedEvents);
@@ -108,7 +106,7 @@ const Daily = () => {
       case 'Booking':
         return `with ${username} at ${event.time}`;
       case 'Takeaway':
-        return event.name; // Keep Takeaway event text unchanged
+        return event.name;
       default:
         return event.name;
     }
@@ -122,7 +120,7 @@ const Daily = () => {
     const eventRef = ref(FIREBASE_DB, `users/${currentUser.uid}/events/${event.id}`);
     await update(eventRef, { confirmedByUser: true });
 
-    const partnerUid = event.uid; // Assuming the name format is "Event with User"
+    const partnerUid = event.uid;
     const partnerEventRef = ref(FIREBASE_DB, `users/${partnerUid}/events`);
     const partnerEventSnapshot = await get(partnerEventRef);
     const partnerEvents = partnerEventSnapshot.val();
@@ -130,17 +128,12 @@ const Daily = () => {
     const partnerEvent = partnerEventKey ? partnerEvents[partnerEventKey] : null;
 
     if (partnerEvent && partnerEvent.confirmedByUser) {
-      // Both users have confirmed
-
-      // Save to event history
       await saveToEventHistory(currentUser.uid, event);
       await saveToEventHistory(partnerUid, partnerEvent);
 
-      // Update streaks
       await updateStreaks(currentUser.uid, partnerUid);
       await updateStreaks(partnerUid, currentUser.uid);
       
-      // Increment counts for both users
       if (event.type === 'Open Jio' || event.type === 'Booking') {
         await incrementMealsCount(currentUser.uid);
         await incrementMealsCount(partnerUid);
@@ -150,7 +143,10 @@ const Daily = () => {
         await incrementTakeawayCount(partnerUid);
       }
 
-      // Remove the event
+      // Add 100 EXP for both users
+      await addExperience(currentUser.uid, 100);
+      await addExperience(partnerUid, 100);
+
       await remove(eventRef);
       await remove(ref(FIREBASE_DB, `users/${partnerUid}/events/${partnerEventKey}`));
     } else if (partnerEventKey) {
@@ -185,10 +181,8 @@ const Daily = () => {
       const currentDay = currentInteractionDate.toLocaleDateString('en-CA', options);
 
       if (lastInteractionDay === currentDay) {
-        // Interaction happened on the same day, don't increment the streak
         return;
       } else {
-        // Increment the streak
         streakData.count += 1;
         streakData.lastInteraction = currentDate;
         await set(streaksRef, streakData);
@@ -231,6 +225,17 @@ const Daily = () => {
     if (userData) {
       const updatedTakeawayCount = (userData.takeawayCount || 0) + 1;
       await update(userRef, { takeawayCount: updatedTakeawayCount });
+    }
+  };
+
+  const addExperience = async (userUid: string, exp: number) => {
+    const userRef = ref(FIREBASE_DB, `users/${userUid}`);
+    const userSnapshot = await get(userRef);
+    const userData = userSnapshot.val();
+
+    if (userData) {
+      const updatedExp = (userData.totalExp || 0) + exp;
+      await update(userRef, { totalExp: updatedExp });
     }
   };
 
