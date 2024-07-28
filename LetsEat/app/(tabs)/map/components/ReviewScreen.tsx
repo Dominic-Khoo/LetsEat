@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { getDatabase, ref, push } from 'firebase/database';
+import { getDatabase, ref, push, get, update } from 'firebase/database';
 import { getAuth } from 'firebase/auth';
-import StarRating from './StarRating'; // Import the custom StarRating component
+import StarRating from './StarRating';
+import { expLevels, calculateLevel } from '../../../../expLevels';
 
 const ReviewScreen: React.FC = () => {
   const { eatery } = useLocalSearchParams();
@@ -34,12 +35,34 @@ const ReviewScreen: React.FC = () => {
     push(reviewRef, reviewDetails)
       .then(() => {
         alert('Review submitted successfully.');
+        addExpToUser(currentUser.uid, 50);
         router.back();
       })
       .catch((error) => {
         console.error('Error submitting review:', error);
         alert('Error submitting review. Please try again.');
       });
+  };
+
+  const addExpToUser = async (uid: string, expGained: number) => {
+    const userRef = ref(database, `users/${uid}/exp`);
+    try {
+      const snapshot = await get(userRef);
+      let currentExp = snapshot.exists() ? snapshot.val() : 0;
+      let newExp = currentExp + expGained;
+      let level = calculateLevel(newExp);
+      let expForNextLevel = expLevels[level - 1].exp;
+
+      while (newExp >= expForNextLevel && level < expLevels.length) {
+        newExp -= expForNextLevel;
+        level++;
+        expForNextLevel = expLevels[level - 1].exp;
+      }
+
+      await update(ref(database, `users/${uid}`), { exp: newExp, level });
+    } catch (error) {
+      console.error('Error adding EXP:', error);
+    }
   };
 
   return (

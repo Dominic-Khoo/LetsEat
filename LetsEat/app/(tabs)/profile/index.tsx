@@ -15,19 +15,26 @@ import { router } from "expo-router";
 import { getAuth } from "firebase/auth";
 import { onValue, ref, set } from "firebase/database";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import SplashScreen from "@/components/SplashScreen"; // Import SplashScreen
-import Slider from "@react-native-community/slider"; // Import Slider
+import SplashScreen from "@/components/SplashScreen";
+import Slider from "@react-native-community/slider";
+import { ProgressBar } from "react-native-paper";
+import { calculateLevel, calculateExpWithinLevel } from "../../../expLevels";
 
 const Profile = () => {
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState<string>("");
   const [bio, setBio] = useState<string>("");
   const [faculty, setFaculty] = useState<string>("");
-  const [campusAccomodation, setCampusAccomodation] = useState<string>("");
+  const [campusAccommodation, setCampusAccommodation] = useState<string>("");
   const [preferredCuisine, setPreferredCuisine] = useState<string>("");
-  const [loadingImage, setLoadingImage] = useState(true); // Add loading state
+  const [loadingImage, setLoadingImage] = useState(true);
   const [imageSource, setImageSource] = useState<string | null>(null);
-  const [status, setStatus] = useState<number>(1); // Default to 1 (Open to Strangers)
+  const [status, setStatus] = useState<number>(1);
+  const [totalExp, setTotalExp] = useState<number>(0);
+  const [level, setLevel] = useState<number>(1);
+  const [currentLevelExp, setCurrentLevelExp] = useState<number>(0);
+  const [nextLevelExp, setNextLevelExp] = useState<number>(100);
+  const [showExp, setShowExp] = useState<boolean>(false);
 
   const user = FIREBASE_AUTH.currentUser;
 
@@ -40,24 +47,28 @@ const Profile = () => {
           if (data.username) setUsername(data.username);
           if (data.bio) setBio(data.bio);
           if (data.faculty) setFaculty(data.faculty);
-          if (data.campusAccomodation)
-            setCampusAccomodation(data.campusAccomodation);
+          if (data.campusAccommodation) setCampusAccommodation(data.campusAccommodation);
           if (data.preferredCuisine) setPreferredCuisine(data.preferredCuisine);
           if (data.status !== undefined) {
             setStatus(data.status === "open" ? 1 : 0);
-          } else {
-            // Set default status to open if not already set
-            set(userRef, { ...data, status: "open" });
           }
+          if (data.exp !== undefined) setTotalExp(data.exp);
         }
-        setLoading(false); // Set loading to false when data is loaded
+        setLoading(false);
       });
 
       setImageSource(user.photoURL || null);
     } else {
-      setLoading(false); // Set loading to false if no user is found
+      setLoading(false);
     }
   }, [user]);
+
+  useEffect(() => {
+    setLevel(calculateLevel(totalExp));
+    const { currentLevelExp, nextLevelExp } = calculateExpWithinLevel(totalExp);
+    setCurrentLevelExp(currentLevelExp);
+    setNextLevelExp(nextLevelExp);
+  }, [totalExp]);
 
   const handleStatusChange = (value: number) => {
     const auth = getAuth();
@@ -69,6 +80,10 @@ const Profile = () => {
     }
   };
 
+  const handleExpToggle = () => {
+    setShowExp(!showExp);
+  };
+
   useFocusEffect(
     useCallback(() => {
       fetchData();
@@ -76,7 +91,7 @@ const Profile = () => {
   );
 
   if (loading) {
-    return <SplashScreen />; // Render SplashScreen while loading
+    return <SplashScreen />;
   }
 
   return (
@@ -99,19 +114,35 @@ const Profile = () => {
                 ? { uri: imageSource }
                 : require("../../../assets/images/default.png")
             }
-            onLoad={() => setLoadingImage(false)} // Set loading to false when the image loads
+            onLoad={() => setLoadingImage(false)}
             onError={() => {
               setLoadingImage(false);
-              setImageSource(null); // Set default image if there's an error loading the image
+              setImageSource(null);
             }}
           />
         </View>
 
-        <Text className="pt-5 text-2xl text-center font-pblack">
-          {username}
-        </Text>
+        <View style={styles.nameContainer}>
+          <Text style={styles.usernameText}>{username}</Text>
+          <TouchableOpacity onPress={handleExpToggle}>
+            <Text style={styles.levelText}>LVL {level}</Text>
+          </TouchableOpacity>
+        </View>
 
-        <Text className="pt-3 text-center font-pnormal">{bio}</Text>
+        {showExp && (
+          <View style={styles.expContainer}>
+            <Text style={styles.expText}>EXP: {currentLevelExp} / {nextLevelExp}</Text>
+            <View style={styles.progressBarContainer}>
+              <ProgressBar
+                progress={currentLevelExp / nextLevelExp}
+                color="#FF6F69"
+                style={styles.progressBar}
+              />
+            </View>
+          </View>
+        )}
+
+        <Text style={styles.bioText}>{bio}</Text>
         <View style={styles.userBtnWrapper}>
           <TouchableOpacity
             style={styles.logoutButton}
@@ -139,8 +170,8 @@ const Profile = () => {
 
         <View style={styles.userInfoWrapper}>
           <View style={styles.userInfoItem}>
-            <Text style={styles.userInfoTitle}>Campus Accomodation</Text>
-            <Text style={styles.userInfoSubTitle}>{campusAccomodation}</Text>
+            <Text style={styles.userInfoTitle}>Campus Accommodation</Text>
+            <Text style={styles.userInfoSubTitle}>{campusAccommodation}</Text>
           </View>
         </View>
 
@@ -185,14 +216,61 @@ export default Profile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF", // White background color for the container
+    backgroundColor: "#FFFFFF",
   },
   userImg: {
     height: 120,
     width: 120,
     borderRadius: 75,
-    borderColor: "black", // Add black border color
-    borderWidth: 2, // Add border width
+    borderColor: "black",
+    borderWidth: 2,
+  },
+  imageContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  nameContainer: {
+    alignItems: "center",
+    marginTop: 10,
+  },
+  usernameText: {
+    fontSize: 24,
+    fontFamily: "Poppins-Black",
+    textAlign: "center",
+  },
+  levelText: {
+    fontSize: 18,
+    fontFamily: "Poppins-SemiBold",
+    textAlign: "center",
+    color: "#FF6F69",
+    marginTop: 5,
+  },
+  bioText: {
+    fontSize: 16,
+    fontFamily: "Poppins-Regular",
+    textAlign: "center",
+    marginVertical: 10,
+  },
+  expContainer: {
+    width: '90%',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  expText: {
+    fontSize: 16,
+    fontFamily: "Poppins-Regular",
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  progressBarContainer: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: "black",
+    borderRadius: 5,
+  },
+  progressBar: {
+    height: 10,
+    borderRadius: 5,
   },
   userBtnWrapper: {
     flexDirection: "row",
@@ -200,19 +278,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
-  imageContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
   logoutButton: {
-    backgroundColor: "#FFCACA", // Light red background color for the logout button
+    backgroundColor: "#FFCACA",
     padding: 10,
     borderRadius: 8,
     margin: 20,
     alignItems: "center",
   },
   logoutText: {
-    color: "#000000", // Black text color for the logout button text
+    color: "#000000",
     fontSize: 16,
     fontFamily: "Poppins-SemiBold",
   },
